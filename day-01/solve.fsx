@@ -3,14 +3,12 @@ open System.IO
 
 Environment.CurrentDirectory <- __SOURCE_DIRECTORY__
 
-let lines = File.ReadAllLines("sample.txt") |> Array.toSeq
-
-let splitByCond xs pred = 
+let splitByCond predicate xs = 
     [
         let mutable lst=[]
         for line in xs do
             match line with
-            | line when pred(line)=true ->
+            | line when predicate(line)=true ->
                 yield lst
                 lst<-[]
             | _->
@@ -20,9 +18,14 @@ let splitByCond xs pred =
 
 let convertToInt = List.map (List.map (fun (x:string)->int x))
 
-let caloriesInput = splitByCond lines (fun line->line="")
+let read inputLines = 
+    inputLines
+    |>splitByCond (fun line->line="")
+    |>convertToInt
 
-let calories = convertToInt caloriesInput
+
+let lines = File.ReadAllLines("input.txt") 
+let calories = read lines 
 
 let totals = calories|>List.map List.sum
 let max = List.max(totals)//74198
