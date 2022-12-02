@@ -1,0 +1,43 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+
+    <IsPackable>false</IsPackable>
+    <GenerateProgramFile>false</GenerateProgramFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Remove="day03\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="common\print.fs" />
+    <Compile Include="common\collections.fs" />
+    <Content Include="day01\input.txt" />
+    <Content Include="day01\sample.txt" />
+    <Compile Include="day02\solve.fs" />
+    <Compile Include="day02\test.fs" />
+    <Content Include="day02\input.txt" />
+    <Content Include="day02\sample.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="day01\solve.fs" />
+    <Compile Include="day01\test.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.3.2" />
+    <PackageReference Include="xunit" Version="2.4.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.5">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="coverlet.collector" Version="3.1.2">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
+
+</Project>
