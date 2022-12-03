@@ -1,3 +1,6 @@
+[<AutoOpen>]
+module aoc.common.collections
+
 let splitByCond predicate xs =
     [ let mutable lst = []
 
@@ -10,4 +13,6 @@ let splitByCond predicate xs =
 
       yield lst ]
 
-let print x = printfn "%A" x
+/// flatmap on arrays
+let ArrayCollect x =
+    Seq.ofArray x |> Seq.collect id |> Seq.toArray
