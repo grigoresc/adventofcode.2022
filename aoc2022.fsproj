@@ -25,6 +25,10 @@
     <Compile Include="day03\test.fs" />
     <Content Include="day03\input.txt" />
     <Content Include="day03\sample.txt" />
+    <Compile Include="day04\solve.fs" />
+    <Compile Include="day04\test.fs" />
+    <Content Include="day04\input.txt" />
+    <Content Include="day04\sample.txt" />
   </ItemGroup>
 
   <ItemGroup>
