@@ -1,8 +1,6 @@
 ﻿module aoc.day06.solutions
 
-open aoc.common
-
-let ok (line: string) = Set(line).Count = line.Length
+let ok (s: string) = Set(s).Count = s.Length
 
 let solve size (lines: string []) =
     let line = lines[0]
