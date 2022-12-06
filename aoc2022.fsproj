@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="common\reads.fs" />
     <Compile Include="common\print.fs" />
     <Compile Include="common\collections.fs" />
     <Content Include="day01\input.txt" />
@@ -35,6 +36,9 @@
     <Content Include="day05\input.txt" />
     <Content Include="day05\sampleOriginal.txt" />
     <Content Include="day05\sample.txt" />
+    <Compile Include="day06\solve.fs" />
+    <Compile Include="day06\test.fs" />
+    <Content Include="day06\input.txt" />
   </ItemGroup>
 
   <ItemGroup>
