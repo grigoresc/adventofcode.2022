@@ -42,7 +42,7 @@ let ``Solve day 6 sample3 part2`` () =
 
 [<Fact>]
 let ``Solve day 6 sample part2`` () =
-    let res = run solve2 "sample.txt"
+    let res = run2 solve2 [| "mjqjpqmgbljsphdztnvjfqwrcgsmlb" |]
     Assert.Equal(19, res)
 
 [<Fact>]
