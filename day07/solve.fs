@@ -2,7 +2,7 @@
 
 open aoc.common
 
-let rec browse (dir: string) (inList: string []) =
+let rec read (inList: string []) =
 
     let mutable next = inList
 
@@ -22,7 +22,7 @@ let rec browse (dir: string) (inList: string []) =
     let mutable acc = []
 
     for d in dirs do
-        let (remained, childTotalSpace, childDirSpace) = browse d[4..] next
+        let (remained, childTotalSpace, childDirSpace) = read next
         totalSpace <- totalSpace + childTotalSpace
         acc <- childDirSpace @ acc
         next <- remained
@@ -31,13 +31,13 @@ let rec browse (dir: string) (inList: string []) =
     (next[1..], totalSpace, acc)
 
 let solve1 (lines: string []) =
-    let (_, _, dirSpaces) = browse "/" lines
+    let (_, _, dirSpaces) = read lines
 
     dirSpaces |> List.where ((>=) 100000) |> List.sum
 
 
 let solve2 (lines: string []) =
-    let (_, totalSpace, dirSpaces) = browse "/" lines
+    let (_, totalSpace, dirSpaces) = read lines
     let spaceNeeded = totalSpace - (70000000 - 30000000)
 
     dirSpaces
