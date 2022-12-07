@@ -1,7 +1,8 @@
 ﻿module aoc.day07.solutions
+
 open aoc.common
 
-let rec browse (dir: string) (inList: string [])  =
+let rec browse (dir: string) (inList: string []) =
 
     let mutable next = inList
 
@@ -16,29 +17,29 @@ let rec browse (dir: string) (inList: string [])  =
         |> Array.where (fun x -> x[0] <> 'd')
         |> Array.map readNumber
 
-    let mutable sum = Array.sum files
+    let mutable totalSpace = Array.sum files
     next <- next[2 + childs.Length ..]
     let mutable acc = []
 
     for d in dirs do
-        let (childNext, childSize, childAcc) = browse d[4..] next 
-        sum <- sum + childSize
-        acc <- childAcc @ acc
-        next <- childNext 
+        let (remained, childTotalSpace, childDirSpace) = browse d[4..] next
+        totalSpace <- totalSpace + childTotalSpace
+        acc <- childDirSpace @ acc
+        next <- remained
 
-    acc<-sum::acc
-    (next[1..], sum,  acc)
+    acc <- totalSpace :: acc
+    (next[1..], totalSpace, acc)
 
 let solve1 (lines: string []) =
-    let (_, _,  acc) = browse "/" lines 
-    let sumUnder1Mil = acc|>List.where (fun e->e<=100000)|>List.sum
+    let (_, _, dirSpaces) = browse "/" lines
 
-    sumUnder1Mil
+    dirSpaces |> List.where ((>=) 100000) |> List.sum
+
 
 let solve2 (lines: string []) =
-    let (_, chisum, acc) = browse "/" lines 
+    let (_, totalSpace, dirSpaces) = browse "/" lines
+    let spaceNeeded = totalSpace - (70000000 - 30000000)
 
-    let spaceNeeded = chisum - (70000000 - 30000000)
-    let toDelete = acc |> List.sort|> List.find (fun e -> e > spaceNeeded)
-    toDelete 
-
+    dirSpaces
+    |> List.sort
+    |> List.find ((<) spaceNeeded)
