@@ -1,17 +1,12 @@
 ﻿module aoc.day07.solutions
-
 open aoc.common
 
-let rec browse (dir: string) (ilst: string []) (acc: int list) =
+let rec browse (dir: string) (inList: string [])  =
 
-    let mutable lst = ilst
+    let mutable next = inList
 
-    let cmd = lst[0]
-    assert (cmd = "$ cd " + dir)
-
-    let ls = lst[1]
     let childs =
-        (lst[2..])
+        (next[2..])
         |> Array.takeWhile (fun x -> x[0] <> '$')
 
     let dirs = childs |> Array.where (fun x -> x[0] = 'd')
@@ -21,30 +16,29 @@ let rec browse (dir: string) (ilst: string []) (acc: int list) =
         |> Array.where (fun x -> x[0] <> 'd')
         |> Array.map readNumber
 
-    let mutable sumfiles = Array.sum files
-
-    lst <- lst[2 + childs.Length ..]
-
-    let mutable acc1 = acc
+    let mutable sum = Array.sum files
+    next <- next[2 + childs.Length ..]
+    let mutable acc = []
 
     for d in dirs do
-        let (chilst, chisum, chiacc) = browse d[4..] lst acc
-        sumfiles <- sumfiles + chisum
-        acc1 <- chiacc @ acc1
-        lst <- chilst
+        let (childNext, childSize, childAcc) = browse d[4..] next 
+        sum <- sum + childSize
+        acc <- childAcc @ acc
+        next <- childNext 
 
-    acc1<-sumfiles::acc1
-    (lst[1..], sumfiles,  acc1)
+    acc<-sum::acc
+    (next[1..], sum,  acc)
 
 let solve1 (lines: string []) =
-    let (_, _,  acc) = browse "/" lines []
+    let (_, _,  acc) = browse "/" lines 
     let sumUnder1Mil = acc|>List.where (fun e->e<=100000)|>List.sum
 
     sumUnder1Mil
 
 let solve2 (lines: string []) =
-    let (_, chisum, acc) = browse "/" lines []
+    let (_, chisum, acc) = browse "/" lines 
 
-    let spaceneeded = chisum - (70000000 - 30000000)
-    let delete = acc |> List.sort|> List.find (fun e -> e > spaceneeded)
-    delete 
+    let spaceNeeded = chisum - (70000000 - 30000000)
+    let toDelete = acc |> List.sort|> List.find (fun e -> e > spaceNeeded)
+    toDelete 
+
