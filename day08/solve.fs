@@ -2,6 +2,9 @@
 
 open aoc.common
 
+type Dir = { s: int; inc: int; e: int }
+type Dir2 = { xdir: Dir; ydir: Dir }
+
 let parse (lines: string []) =
     let a =
         lines
@@ -12,12 +15,12 @@ let parse (lines: string []) =
     a
 
 
-let findMax (a: int array array) (i1, iinc, i2) (j1, jinc, j2) f =
+let findMax (a: int array array) (idir: Dir) (jdir: Dir) f =
     seq {
-        for i in [ i1..iinc..i2 ] do
+        for i in [ idir.s .. idir.inc .. idir.e ] do
             let mutable max = -1
 
-            for j in [ j1..jinc..j2 ] do
+            for j in [ jdir.s .. jdir.inc .. jdir.e ] do
                 if a[i][j] > max then
                     max <- a[i][j]
                     yield f (i, j)
@@ -29,13 +32,20 @@ let solve1 lines =
     let at = Array.transpose a
     let len = a.Length
 
+    let forward = { s = 0; inc = 1; e = len - 1 }
+    let backwards = { s = len - 1; inc = -1; e = 0 }
+    //let left = { xdir = forward; ydir = forward }
+    //let right = { xdir = forward; ydir = forward }
+    //let bottom = { xdir = forward; ydir = forward }
+    //let top = { xdir = forward; ydir = forward }
+
     let look =
         seq {
 
-            yield! findMax a (0, 1, len - 1) (0, 1, len - 1) (fun (i, j) -> (i, j))
-            yield! findMax a (0, 1, len - 1) (len - 1, -1, 0) (fun (i, j) -> (i, j))
-            yield! findMax at (len - 1, -1, 0) (0, 1, len - 1) (fun (i, j) -> (j, i))
-            yield! findMax at (len - 1, -1, 0) (len - 1, -1, 0) (fun (i, j) -> (j, i))
+            yield! findMax a forward forward (fun (i, j) -> (i, j))
+            yield! findMax a forward backwards (fun (i, j) -> (i, j))
+            yield! findMax at backwards forward (fun (i, j) -> (j, i))
+            yield! findMax at backwards backwards (fun (i, j) -> (j, i))
         }
 
     let la = Array.ofSeq look
