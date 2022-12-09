@@ -6,62 +6,52 @@ let directions =
           "L", (-1, 0)
           "D", (0, -1) ]
 
-let moveTowards newH posT =
-    if newH > posT then
-        posT + 1
+let moveTowards head prevTail =
+    if head > prevTail then
+        prevTail + 1
     else
-        posT - 1
+        prevTail - 1
 
-let move posH posT newH =
+let nextTail tail head =
 
-    let diff = (abs (fst (posT) - fst (newH)), abs (snd (posT) - snd (newH)))
+    let diff = (abs (fst (tail) - fst (head)), abs (snd (tail) - snd (head)))
 
-    let newT =
+    let newTail =
         match diff with
-        | (0, 0) -> posT
-        | (0, 1) -> posT
+        | (0, 0) -> tail
+        | (0, 1) -> tail
 
-        | (1, 0) -> posT
-        | (1, 1) -> posT
+        | (1, 0) -> tail
+        | (1, 1) -> tail
 
-        | (0, 2) -> (fst (newH), moveTowards (snd (newH)) (snd (posT)))
-        | (2, 0) -> (moveTowards (fst (newH)) (fst (posT)), snd (newH))
+        | (0, 2) -> (fst (head), moveTowards (snd (head)) (snd (tail)))
+        | (2, 0) -> (moveTowards (fst (head)) (fst (tail)), snd (head))
 
-        | (1, 2) -> (fst (posH), moveTowards (snd (newH)) (snd (posT)))
-        | (2, 1) -> (moveTowards (fst (newH)) (fst (posT)), snd (posH))
+        | (1, 2) -> (fst (head), moveTowards (snd (head)) (snd (tail)))
+        | (2, 1) -> (moveTowards (fst (head)) (fst (tail)), snd (head))
 
-        | (2, 2) -> (moveTowards (fst (newH)) (fst (posT)), moveTowards (snd (newH)) (snd (posT))) //that's the extra case for 2nd part..
+        | (2, 2) -> (moveTowards (fst (head)) (fst (tail)), moveTowards (snd (head)) (snd (tail))) //that's the extra case for 2nd part..
 
         | _ -> failwith $"shouldn't reach this case... diff={diff}"
 
-    newH, newT
+    newTail
 
 let parse (line: string) =
     let a = line.Split ' '
     (a[0], int (a[1]))
 
 let solve (knots: (int * int) []) motions =
-    let tailIdx = knots.Length - 1
-    let mutable visited = set ([ knots[tailIdx] ])
+    let lastTailIdx = knots.Length - 1
+    let mutable visited = set ([ knots[lastTailIdx] ])
 
     for (d, sz) in motions do
-
         for i in 0 .. sz - 1 do
+            knots[0] <- (fst (knots[0]) + fst (directions[d]), snd (knots[0]) + snd (directions[d]))
 
-            let mutable newH =
-                (fst (knots[0]) + fst (directions[d]), snd (knots[0]) + snd (directions[d]))
+            for tailIndex in 1..lastTailIdx do
+                knots[tailIndex] <- nextTail knots[tailIndex] knots[tailIndex - 1]
 
-            for idxH in 0 .. tailIdx - 1 do
-                let idxT = idxH + 1
-
-                let (nposH, nposT) = move knots[idxH] knots[idxT] newH
-                knots[idxH] <- nposH
-                knots[idxT] <- nposT
-
-                newH <- nposT
-
-            visited <- visited.Add knots[tailIdx]
-
+            visited <- visited.Add knots[lastTailIdx]
 
     visited.Count
 
