@@ -1,7 +1,5 @@
 ﻿module aoc.day10.solutions
 
-open aoc.common
-
 type Cmd =
     | Noop
     | AddX of int
@@ -54,5 +52,4 @@ let solve2 (lines: string []) =
             if reg - 1 <= y && y <= reg + 1 then
                 screen[x, y] <- "#"
 
-    printScreen screen
-    screen |> toStrings
+    screen

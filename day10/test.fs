@@ -1,6 +1,8 @@
 module aoc.day10.test
 
 open aoc.day10.solutions
+open aoc.common
+
 open System.IO
 open Xunit
 
@@ -33,7 +35,7 @@ let ``Solve day 10 input part2`` () =
           "#....#....#..#.#..#.#.#..#.#..#..#.#..#."
           "####.#.....##..###..#..#.#..#.#..#.#..#." ]
 
-    Assert.True(screen.Equals res) //EPJBRKAH
+    Assert.True(screen.Equals(toStrings res)) //EPJBRKAH
 
 [<Fact>]
 let ``Solve day 10 sample part2`` () =
@@ -47,4 +49,4 @@ let ``Solve day 10 sample part2`` () =
           "######......######......######......####"
           "#######.......#######.......#######....." ]
 
-    Assert.True(screen.Equals res)
+    Assert.True(screen.Equals(toStrings res))
