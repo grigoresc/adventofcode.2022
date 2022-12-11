@@ -11,12 +11,12 @@ type Monkey =
 
 let parseOp (line: string) =
     match line with
-    | line when line.Contains "old * old" -> (fun x commondiv -> (x % commondiv) * (x % commondiv))
+    | line when line.Contains "old * old" -> (fun x commonmult -> (x % commonmult) * (x % commonmult))
     | line when line.Contains "*" ->
-        (fun x commondiv ->
-            (x % commondiv)
-            * (bigint (readNumber (line)) % commondiv))
-    | line when line.Contains "+" -> (fun x commondiv -> x + (bigint (readNumber (line))))
+        (fun x commonmult ->
+            (x % commonmult)
+            * (bigint (readNumber line) % commonmult))
+    | line when line.Contains "+" -> (fun x commonmult -> x + (bigint (readNumber line)))
     | _ -> failwith "cannot parse"
 
 let parseMonkey (lines: string list) =
@@ -29,14 +29,13 @@ let parseMonkey (lines: string list) =
 let parseInput lines =
     lines
     |> splitByCond ((=) "")
-    |> List.toArray
-    |> Array.map parseMonkey
+    |> List.map parseMonkey
 
-let fct1 commondiv (monkey: Monkey) worryLevel : bigint =
-    let multiply = monkey.op worryLevel commondiv
+let fct1 commonmult (monkey: Monkey) worryLevel : bigint =
+    let multiply = monkey.op worryLevel commonmult
     bigint (System.Math.Floor(decimal (multiply) / 3m))
 
-let fct2 commondiv (monkey: Monkey) worryLevel : bigint = monkey.op worryLevel commondiv
+let fct2 commonmult (monkey: Monkey) worryLevel : bigint = monkey.op worryLevel commonmult
 
 let inspect fct commonMult (monkey: Monkey) worryLevel : int * bigint =
     let bored = fct commonMult monkey worryLevel
@@ -46,7 +45,7 @@ let inspect fct commonMult (monkey: Monkey) worryLevel : int * bigint =
     else
         monkey.iffalse, bored
 
-let solve fct rounds (monkeys: Monkey array) =
+let solve fct rounds (monkeys: Monkey list) =
     let commonMult =
         monkeys
         |> Seq.map (fun x -> x.div)
@@ -54,7 +53,8 @@ let solve fct rounds (monkeys: Monkey array) =
 
     let monkeyItems =
         monkeys
-        |> Array.map (fun x -> List.ofArray (x.originalItems |> Array.map bigint))
+        |> Seq.map (fun x -> List.ofArray (x.originalItems |> Array.map bigint))
+        |> Seq.toArray
 
     let mutable state = (monkeyItems, Array.create monkeys.Length 0)
 
