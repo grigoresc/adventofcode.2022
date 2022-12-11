@@ -10,6 +10,7 @@ let parse (line: string) =
     match a with
     | a when a[0] = "noop" -> Noop
     | a when a[0] = "addx" -> AddX(int (a[1]))
+    | _ -> failwith "cannot parse"
 
 let execute commands =
     seq {
