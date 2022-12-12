@@ -46,7 +46,7 @@ let OnlyAllowed2 (lines: string []) (coord1: Coord) (coord2: CostToCoord) =
 
 let indexof coord (lst: Coord list) = List.findIndex ((=) coord) lst
 
-let calcMin (edges: Map<Coord, CostToCoord list>) (nodes: Coord list) sc =
+let minCost (edges: Map<Coord, CostToCoord list>) (nodes: Coord list) sc =
     let distances = Array.create nodes.Length (System.Int32.MaxValue)
     distances[indexof sc nodes] <- 0
     let mutable stack = [ (0, sc) ]
@@ -98,7 +98,7 @@ let solve1 (lines: string []) =
 
     let nodes = edges |> Map.keys |> List.ofSeq
 
-    let distances = calcMin edges nodes sc
+    let distances = minCost edges nodes sc
 
     let sln = distances[indexof ec nodes]
     print sln
@@ -118,7 +118,6 @@ let solve2 (lines: string []) =
 
                     let nei =
                         [ for pos in Pos i j H W do
-                              //print (i, j, fst (pos), snd (pos))
                               if lines[i][j] = 'S' then
                                   sc <- { X = i; Y = j }
 
@@ -136,7 +135,7 @@ let solve2 (lines: string []) =
 
     let nodes = incomingEdges |> Map.keys |> List.ofSeq
 
-    let distances = calcMin incomingEdges nodes ec
+    let distances = minCost incomingEdges nodes ec
 
     let minDistance =
         nodes
