@@ -25,9 +25,9 @@ let ``Solve day 12 sample`` () =
 [<Fact>]
 let ``Solve day 12 input part2`` () =
     let res = run solve2 "input.txt"
-    Assert.True(0 = res)
+    Assert.True(500 = res)
 
 [<Fact>]
 let ``Solve day 12 sample part2`` () =
     let res = run solve2 "sample.txt"
-    Assert.True(0 = res)
+    Assert.True(29 = res)
