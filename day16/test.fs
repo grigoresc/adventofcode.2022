@@ -20,7 +20,7 @@ let ``Solve day 16 sample`` () =
 [<NCrunch.Framework.Timeout(600000)>]
 let ``Solve day 16 input`` () =
     let res = run solve1 "input.txt"
-    Assert.Equal(1, res)
+    Assert.Equal(1701, res)
 
 [<Fact>]
 let ``Solve day 16 sample part2`` () =

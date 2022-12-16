@@ -1,196 +1,55 @@
 ﻿module aoc.day16.solutions
 
 open System.Text.RegularExpressions
-
 open aoc.common
-
 open System.Collections.Generic
 
 type Tunnel =
     { src: string
       dest: string }
-    member this.toString = this.src + " " + this.dest
-
-type TunnelCost =
-    { src: string
-      dest: string
-      costsPerLevel: Map<int, int>
-      constantFluxLevel: int }
+    member this.toString = $"{this.src} {this.dest}"
 
 type Valve =
     { id: string
       rate: int
       valves: string [] }
 
-let memoize (memoDict: Dictionary<_, _>) f =
-    fun c ->
-        let exist, value = memoDict.TryGetValue c
-        //printm "c" c
+type State = { openValves: string list }
 
-        match exist with
-        | true -> value
-        | _ ->
-            let value = f c
-            //printm "add" c
-            memoDict.Add(c, value)
-            value
+type Op =
+    | Skip
+    | Open
 
+type Command =
+    { tunnel: Tunnel
+      availableTime: int
+      instruction: Op }
+    member this.nextAvailableTime =
+        (this.availableTime
+         - 1
+         - if this.instruction = Op.Open then
+               1
+           else
+               0)
 
-let fib_sln (n: int) : int =
-    let memoDict = Dictionary<_, _>()
-
-    let rec fib (n: int) : int =
-        match n with
-        | 0
-        | 1 -> n
-        | n ->
-            memoize memoDict fib (n - 1)
-            + memoize memoDict fib (n - 2)
-
-    let memoFib = memoize memoDict fib
-    memoFib n
+    member this.addedPressure(valves: Map<string, Valve>) =
+        if this.instruction = Op.Open then
+            (this.availableTime - 1)
+            * (valves[this.tunnel.src].rate)
+        else
+            0
 
 type Result =
-    { tunnel: Tunnel
-      openInstr: bool
+    { command: Command
       operated: bool
-      minute: int
       cost: int }
     member this.tostring =
-        this.tunnel.toString
-        + " "
-        + this.openInstr.ToString()
-        + " "
-        + this.operated.ToString()
-        + " "
-        + this.minute.ToString()
-        + " "
-        + this.cost.ToString()
-
-let calcCost (valves: Map<string, Valve>) (tunnel: Tunnel) : Option<Result list> =
-    let memoDict = Dictionary<_, _>()
-
-    let totalTime = 30
-    //calc max cost if we chose this tunnel, and have this time, and the source valve is going to be open or not
-    //cost being the released pressure
-    let rec calcMaxCost (openvalves: string list, tunnel: Tunnel, time: int, instructOpen: bool) : Option<Result list> =
-        //printmPadded (totalTime - time) $"{time}/{instructOpen} tunnel" tunnel.toString
-
-        if time = 0 then
-            //print "cant do anything with 0 time"
-
-            Some(
-                [ { tunnel = tunnel
-                    openInstr = instructOpen
-                    operated = false
-                    minute = time
-                    cost = 0 } ]
-            )
-        else if time = 1 then
-            //print "cant do anything with 1 time; even if we may open the valve.."
-
-            Some(
-                [ { tunnel = tunnel
-                    openInstr = instructOpen
-                    operated = false
-                    minute = time
-                    cost = 0 } ]
-            )
-        else
-            let src = tunnel.src
-            let dest = tunnel.dest
-            let destValve = valves[dest]
-
-            let mutable maxCost = -1
-            let mutable maxCostChosen = None
-
-            let timeTaken = 1 + (if instructOpen then 1 else 0)
-
-            let newopenvalves =
-                if instructOpen then
-                    (src :: openvalves) |> List.sort
-                else
-                    openvalves
-
-            let extraPressure =
-                if instructOpen then
-                    (time - 1) * (valves[src].rate)
-                else
-                    0
-
-            for desti in destValve.valves do
-
-                let tunneli = { src = dest; dest = desti }
-
-                //we have two cases
-                //1. not going to open the next valve
-                let c1 =
-                    (memoize memoDict calcMaxCost (newopenvalves, tunneli, (time - timeTaken), false))
-
-                if c1 <> None then
-                    let alreadyopen1 =
-                        c1.Value
-                        |> List.tryFind (fun e ->
-                            e.tunnel.src = src
-                            && e.openInstr = true
-                            && e.operated = true)
-
-                    if instructOpen = false || alreadyopen1 = None then
-                        let costNotOpenNext = extraPressure + c1.Value.Head.cost
-
-                        if costNotOpenNext > maxCost then
-                            maxCost <- costNotOpenNext
-                            maxCostChosen <- Some(c1)
-
-                //2. going to open the next valve
-                if not (List.contains tunneli.src newopenvalves) then
-                    let c2 =
-                        (memoize memoDict calcMaxCost (newopenvalves, tunneli, (time - timeTaken), true))
-
-                    if c2 <> None then
-                        let alreadyopen2 =
-                            c2.Value
-                            |> List.tryFind (fun e ->
-                                e.tunnel.src = src
-                                && e.openInstr = true
-                                && e.operated = true)
-
-                        if instructOpen = false || alreadyopen2 = None then
-                            let costOpenNext = extraPressure + c2.Value.Head.cost
-
-                            if costOpenNext > maxCost then
-                                maxCost <- costOpenNext
-                                maxCostChosen <- Some(c2)
-
-            //printm $"{time}/{instructOpen} tunnel/tunelli" (tunnel.toString, maxCostChosen)
-
-            //printm $"{time}/{instructOpen} maxcost" maxCost
-
-            if maxCostChosen = None then
-                None
-            else
-                Some(
-                    { tunnel = tunnel
-                      openInstr = instructOpen
-                      operated = true
-                      minute = time
-                      cost = maxCost }
-                    :: maxCostChosen.Value.Value
-                )
-
-    //let memoMaxCost = memoize calcMaxCost
-
-    let memoMaxCost = memoize memoDict calcMaxCost
-
-    let ret = memoMaxCost ([], tunnel, totalTime, false)
-    ret
+        $"{this.command.tunnel.toString} {this.command.instruction} {this.operated} {this.command.availableTime} {this.cost}"
 
 let read (line: string) =
-    let rx =
+    let m =
         Regex("^Valve (.{2}) has flow rate=([0-9]+); tunnels? leads? to valves? (.*)$", RegexOptions.Compiled)
-
-    //print line
-    let m = rx.Match(line)
+            .Match(line)
 
     let (valve, rate, valves) =
         (m.Groups[1].Value), (m.Groups[2].Value), (m.Groups[ 3 ].Value.Split(", "))
@@ -200,17 +59,117 @@ let read (line: string) =
        rate = int (rate)
        valves = valves })
 
+let getNextState (state: State) (cmd: Command) =
+    let openValvesNext =
+        if cmd.instruction = Op.Open then
+            (cmd.tunnel.src :: state.openValves) |> List.sort
+        else
+            state.openValves
+
+    { openValves = openValvesNext }
+
+let canGoToNexState (nextState: State) (nextCmd: Command) (valves: Map<string, Valve>) =
+    if nextCmd.instruction = Op.Skip then
+        true
+    else if
+        valves[nextCmd.tunnel.src].rate > 0 //only it has some pressure
+        && not (List.contains nextCmd.tunnel.src nextState.openValves) //and only it isnt already open
+    then
+        true
+    else
+        false
+
+let calcCost (valves: Map<string, Valve>) (start: string) (totalTime: int) : int =
+    let memoDict = Dictionary<_, _>()
+
+    //calc max cost if we chose this tunnel, and have this time, and the source valve is going to be open or not
+    //cost being the released pressure
+    let rec calcMaxCost (state: State, cmd: Command) : Option<Result list> =
+        //printmPadded (totalTime - cmd.availableTime) $"{cmd.availableTime}/{cmd.instruction} tunnel" cmd.tunnel.toString
+
+        if List.contains cmd.availableTime [ 0..1 ] then //can't do anything in 0/1 minutes..
+            Some(
+                [ { command = cmd
+                    operated = false
+                    cost = 0 } ]
+            )
+        else
+            let dest = cmd.tunnel.dest
+            let destValve = valves[dest]
+
+            let mutable maxCost = -1
+            let mutable maxCostChosen = None
+
+            let nextState = getNextState state cmd
+
+            //iterate through all possible tunnels
+            for destNext in destValve.valves do
+
+                let tunnelNext = { src = dest; dest = destNext }
+
+                //we have two cases
+                //1. not open the next valve
+                //2. open the next valve
+                for instr in [ Op.Skip; Op.Open ] do
+                    let nextCmd =
+                        { tunnel = tunnelNext
+                          availableTime = cmd.nextAvailableTime
+                          instruction = instr }
+
+                    if canGoToNexState nextState nextCmd valves then
+                        let nextCost = (memoize memoDict calcMaxCost (nextState, nextCmd))
+
+                        if nextCost <> None then
+                            let totalCost =
+                                nextCost.Value.Head.cost
+                                + cmd.addedPressure (valves)
+
+                            if totalCost > maxCost then
+                                maxCost <- totalCost
+                                maxCostChosen <- Some(nextCost)
+
+            //printm $"{time}/{instructOpen} tunnel/tunelli" (tunnel.toString, maxCostChosen)
+            //printm $"{time}/{instructOpen} maxcost" maxCost
+
+            if maxCostChosen = None then
+                None
+            else
+                Some(
+                    { command = cmd
+                      operated = true
+                      cost = maxCost }
+                    :: maxCostChosen.Value.Value
+                )
+
+    let memoMaxCost = memoize memoDict calcMaxCost
+
+    let max =
+        valves[start].valves
+        |> Array.map (fun dest ->
+            let cost =
+                memoMaxCost (
+                    { openValves = [] },
+                    { tunnel = { src = start; dest = dest }
+                      availableTime = totalTime
+                      instruction = Op.Skip }
+                )
+
+            print cost
+            cost.Value.Head.cost)
+
+        |> Array.max
+
+    max
+
+
 let solve1 (lines: string []) =
-    //let run = fib_sln 20 |> printfn "%i"
-
     let valves = lines |> Seq.map read |> Map.ofSeq
-    //printm "valves" valves
 
-    let res = calcCost valves { src = "AA"; dest = "DD" }
-    //printm "res" res
-    printm "res" (res.Value |> List.map (fun e -> e.tostring))
-
-    let sln = valves.Count
+    let sln = calcCost valves "AA" 30
     sln
 
-let solve2 lines = 1
+let solve2 (lines: string []) =
+    let valves = lines |> Seq.map read |> Map.ofSeq
+
+    let sln = calcCost valves "AA" 26
+    sln
