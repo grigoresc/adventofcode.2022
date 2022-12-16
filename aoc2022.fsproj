@@ -70,9 +70,13 @@
     <Content Include="day12\sample.txt" />
     <Compile Include="day14\solve.fs" />
     <Compile Include="day14\test.fs" />
-    <Compile Include="day14\run.fs" />
     <Content Include="day14\input.txt" />
     <Content Include="day14\sample.txt" />
+    <Compile Include="day15\solve.fs" />
+    <Compile Include="day15\test.fs" />
+    <Compile Include="day15\run.fs" />
+    <Content Include="day15\input.txt" />
+    <Content Include="day15\sample.txt" />
   </ItemGroup>
 
   <ItemGroup>

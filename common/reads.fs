@@ -13,9 +13,9 @@ let readTokens (line: string) splitpattern =
 
     v
 
-let readDigits (line: string) = readTokens line @"[^\d]+"
+let readDigits (line: string) = readTokens line @"([^\-\d]+)" //todo wont work everytime that dash parsing..
 
-let readNumber(line: string) = (readTokens line @"[^\d]+")[0]
+let readNumber (line: string) = (readTokens line @"[^\d]+")[0]
 
 let readMatrixOfDigits (lines: string []) =
     let v = lines |> Array.map readDigits
