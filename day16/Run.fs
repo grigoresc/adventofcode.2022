@@ -1,4 +1,7 @@
-﻿open aoc.day14.solutions
+﻿module aoc.day16.run
+
+open aoc.day16.solutions
+
 open aoc.common
 open System.IO
 
