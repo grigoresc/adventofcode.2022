@@ -14,7 +14,7 @@ let run solver filename = read filename |> solver
 [<Fact>]
 let ``Solve day 16 sample`` () =
     let res = run solve1 "sample.txt"
-    Assert.Equal(2, res)
+    Assert.Equal(1651, res)
 
 [<Fact>]
 [<NCrunch.Framework.Timeout(600000)>]
