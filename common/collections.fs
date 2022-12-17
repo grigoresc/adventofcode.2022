@@ -17,6 +17,8 @@ let splitByCond predicate xs =
 let ArrayCollect x =
     Seq.ofArray x |> Seq.collect id |> Seq.toArray
 
+let atoString (a: string []) : string = String.concat "" a
+
 let toStrings (a: string [,]) : string list =
     [ for i in 0 .. Array2D.length1 a - 1 do
-          yield String.concat "" a[i, *] ]
+          yield atoString a[i, *] ]

@@ -8,62 +8,76 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="common\reads.fs" />
-    <Compile Include="common\collections.fs" />
-    <Compile Include="common\print.fs" />
-    <Content Include="day01\input.txt" />
-    <Content Include="day01\sample.txt" />
-    <Compile Include="day02\solve.fs" />
-    <Compile Include="day02\test.fs" />
-    <Content Include="day02\input.txt" />
-    <Content Include="day02\sample.txt" />
+    <EmbeddedResource Remove="day13\**" />
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="common\memoize.fs" />
+    <Compile Include="common\reads.fs" />
+    <Compile Include="common\collections.fs" />
+    <Compile Include="common\print.fs" />
     <Compile Include="day01\solve.fs" />
     <Compile Include="day01\test.fs" />
+    <Compile Include="day02\solve.fs" />
+    <Compile Include="day02\test.fs" />
     <Compile Include="day03\solve.fs" />
     <Compile Include="day03\test.fs" />
-    <Content Include="day03\input.txt" />
-    <Content Include="day03\sample.txt" />
     <Compile Include="day04\solve.fs" />
     <Compile Include="day04\test.fs" />
-    <Content Include="day04\input.txt" />
-    <Content Include="day04\sample.txt" />
     <Compile Include="day05\solve.fs" />
     <Compile Include="day05\test.fs" />
-    <Content Include="day05\inputOriginal.txt" />
-    <Content Include="day05\input.txt" />
-    <Content Include="day05\sampleOriginal.txt" />
-    <Content Include="day05\sample.txt" />
     <Compile Include="day06\solve.fs" />
     <Compile Include="day06\test.fs" />
-    <Content Include="day06\input.txt" />
     <Compile Include="day07\solve.fs" />
     <Compile Include="day07\test.fs" />
-    <Content Include="day07\input.txt" />
-    <Content Include="day07\sample.txt" />
     <Compile Include="day08\solve.fs" />
     <Compile Include="day08\test.fs" />
-    <Content Include="day08\input.txt" />
-    <Content Include="day08\sample.txt" />
     <Compile Include="day09\solve.fs" />
     <Compile Include="day09\test.fs" />
-    <Content Include="day09\input.txt" />
-    <Content Include="day09\sample2.txt" />
-    <Content Include="day09\sample.txt" />
     <Compile Include="day10\solve.fs" />
     <Compile Include="day10\test.fs" />
-    <Content Include="day10\input.txt" />
-    <Content Include="day10\sample.txt" />
     <Compile Include="day11\solve.fs" />
     <Compile Include="day11\test.fs" />
-    <Content Include="day11\input.txt" />
-    <Content Include="day11\sample.txt" />
     <Compile Include="day12\solve.fs" />
     <Compile Include="day12\test.fs" />
+    <Compile Include="day14\solve.fs" />
+    <Compile Include="day14\test.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="day16\solve.fs" />
+    <Compile Include="day16\test.fs" />
+    <Compile Include="day16\run.fs" />
+    <Content Include="day01\input.txt" />
+    <Content Include="day01\sample.txt" />
+    <Content Include="day02\input.txt" />
+    <Content Include="day02\sample.txt" />
+    <Content Include="day03\input.txt" />
+    <Content Include="day03\sample.txt" />
+    <Content Include="day04\input.txt" />
+    <Content Include="day04\sample.txt" />
+    <Content Include="day05\input.txt" />
+    <Content Include="day05\inputOriginal.txt" />
+    <Content Include="day05\sample.txt" />
+    <Content Include="day05\sampleOriginal.txt" />
+    <Content Include="day06\input.txt" />
+    <Content Include="day07\input.txt" />
+    <Content Include="day07\sample.txt" />
+    <Content Include="day08\input.txt" />
+    <Content Include="day08\sample.txt" />
+    <Content Include="day09\input.txt" />
+    <Content Include="day09\sample.txt" />
+    <Content Include="day09\sample2.txt" />
+    <Content Include="day10\input.txt" />
+    <Content Include="day10\sample.txt" />
+    <Content Include="day11\input.txt" />
+    <Content Include="day11\sample.txt" />
     <Content Include="day12\input.txt" />
     <Content Include="day12\sample.txt" />
+    <Content Include="day14\input.txt" />
+    <Content Include="day14\sample.txt" />
+    <Content Include="day16\input.txt" />
+    <Content Include="day16\sample.txt" />
   </ItemGroup>
 
   <ItemGroup>
