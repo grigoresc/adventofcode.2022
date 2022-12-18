@@ -114,8 +114,9 @@ let getHeight filled =
     maxY
 
 let WINDOW = 130
+
 //todo - why seq where on jet takes so much time to get the top (5ms?)
-let processRock (jet: string, idx: int (*state: Stack, *) , filled: Set<Coord>) (rock: Rock) =
+let processRock (jet: string) (idx: int, filled: Set<Coord>) (rock: Rock) =
     //drawStack2 filled
 
     let filled =
@@ -125,7 +126,6 @@ let processRock (jet: string, idx: int (*state: Stack, *) , filled: Set<Coord>) 
             |> List.sortByDescending (fun f -> f.Y)
             |> List.take (min WINDOW filled.Count)
         )
-
 
     let maxY = filled |> Set.map (fun e -> e.Y) |> Set.maxElement
 
@@ -206,11 +206,12 @@ let processRock (jet: string, idx: int (*state: Stack, *) , filled: Set<Coord>) 
     //drawStack { state with rocks = safePrepend therock state.rocks }
     let newfilled = filled + Rock.realcoord therock
 
-    jet, currentIdx, newfilled
+    currentIdx, newfilled
 
 let solve rocksnumber (lines: string []) =
     let jet = lines[0]
 
+    //todo - why it didnt work on 1st part (I chosed afterwards another approach - idx based)
     //let jetStream = Seq.initInfinite (fun i -> jet[i % jet.Length])
 
     let rocksStream =
@@ -218,16 +219,33 @@ let solve rocksnumber (lines: string []) =
             { pattern = RockTypes[i % RockTypes.Length]
               pos = { X = 0; Y = 0 }
               idx = i })
-        |> Seq.take rocksnumber
 
-    let (_, _, filled) =
+    let (_, filled) =
         rocksStream
         |> Seq.take rocksnumber
-        |> Seq.fold processRock (jet, -1, Floor)
+        |> Seq.fold (processRock jet) (-1, Floor) //the folded method is (processRock jet) !!!
+
+    let maxY = getHeight filled
+    print (rocksnumber, maxY)
+    maxY
+
+let solve2 (lines: string []) =
+    let jet = lines[0]
+    let rocksnumber = 1000000000000L
+
+    let rocksStream =
+        Seq.initInfinite (fun i ->
+            { pattern = RockTypes[i % RockTypes.Length]
+              pos = { X = 0; Y = 0 }
+              idx = i })
+
+    let (_, filled) =
+        rocksStream
+        |> Seq.take (int (rocksnumber))
+        |> Seq.fold (processRock jet) (-1, Floor)
 
     let maxY = getHeight filled
     print (rocksnumber, maxY)
     maxY
 
 let solve1 = solve 2022
-let solve2 = solve1
