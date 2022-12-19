@@ -129,6 +129,12 @@ let processRock (jet: string) (idx: int, filled: Set<Coord>) (rock: Rock) =
 
     let maxY = filled |> Set.map (fun e -> e.Y) |> Set.maxElement
 
+    //let reduce = min maxY WINDOW
+
+    //let filled =
+    //    filled
+    //    |> Set.map (fun c -> { X = c.X; Y = (c.Y - reduce) })
+
     if rock.idx % 50 = 0 then
         printm $"{rock.idx}" (maxY, filled.Count)
     //print filled
@@ -229,9 +235,22 @@ let solve rocksnumber (lines: string []) =
     print (rocksnumber, maxY)
     maxY
 
+let solve1 = solve 2022
+
+let processRockWithSave (jet: string) (idx: int, filled: Set<Coord>) (rock: Rock) =
+    let res = processRock jet (idx, filled) rock
+    (res, res)
+
+let samepattern (s: seq<int * Set<Coord>>) = Some(s |> Seq.head)
+
+let store f x =
+    let v = f (x)
+    "", v
+
 let solve2 (lines: string []) =
     let jet = lines[0]
     let rocksnumber = 1000000000000L
+    let rocksnumberRun = 2022
 
     let rocksStream =
         Seq.initInfinite (fun i ->
@@ -239,13 +258,30 @@ let solve2 (lines: string []) =
               pos = { X = 0; Y = 0 }
               idx = i })
 
-    let (_, filled) =
+    let (states, filled) =
         rocksStream
-        |> Seq.take (int (rocksnumber))
-        |> Seq.fold (processRock jet) (-1, Floor)
+        |> Seq.take rocksnumberRun
+        |> Seq.mapFold (processRockWithSave jet) (-1, Floor) //the folded method is (processRock jet) !!!
 
-    let maxY = getHeight filled
-    print (rocksnumber, maxY)
+    //let res =
+    //    rocksStream
+    //    |> Seq.take (int (rocksnumber))
+    //    |> Seq.fold (processRockWithSave jet) (-1, Floor)
+    //|> Seq.pick (fun x -> 1
+    //samepattern
+    //)
+    let fillstates = states |> Seq.map snd
+    let len1 = fillstates |> Seq.length
+    let distinct = fillstates |> Seq.distinct |> Seq.length
+
+    let enoughRocks =
+        RockTypes.Length * distinct
+        + int (rocksnumber % int64 (distinct))
+
+    printm "l1/l2" (len1, distinct)
+    //fst(res)|>Seq.pick samepattern
+
+    let maxY = getHeight (snd (filled))
+    print (rocksnumberRun, maxY)
     maxY
-
-let solve1 = solve 2022
+    1
