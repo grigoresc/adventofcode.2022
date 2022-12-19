@@ -9,7 +9,10 @@ let memoize (memoDict: Dictionary<_, _>) f =
         //printm "c" c
 
         match exist with
-        | true -> value
+        | true ->
+            //printm "e" c
+
+            value
         | _ ->
             let value = f c
             //printm "add" c

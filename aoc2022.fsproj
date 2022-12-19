@@ -12,10 +12,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="common\memoize.fs" />
     <Compile Include="common\reads.fs" />
     <Compile Include="common\collections.fs" />
     <Compile Include="common\print.fs" />
+    <Compile Include="common\memoize.fs" />
     <Compile Include="day01\solve.fs" />
     <Compile Include="day01\test.fs" />
     <Compile Include="day02\solve.fs" />
@@ -47,7 +47,6 @@
   <ItemGroup>
     <Compile Include="day16\solve.fs" />
     <Compile Include="day16\test.fs" />
-    <Compile Include="day16\run.fs" />
     <Content Include="day01\input.txt" />
     <Content Include="day01\sample.txt" />
     <Content Include="day02\input.txt" />
@@ -78,6 +77,11 @@
     <Content Include="day14\sample.txt" />
     <Content Include="day16\input.txt" />
     <Content Include="day16\sample.txt" />
+    <Compile Include="day19\solve.fs" />
+    <Compile Include="day19\test.fs" />
+    <Compile Include="day19\run.fs" />
+    <Content Include="day19\input.txt" />
+    <Content Include="day19\sample.txt" />
   </ItemGroup>
 
   <ItemGroup>
