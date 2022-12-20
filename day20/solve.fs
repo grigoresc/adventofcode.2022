@@ -28,15 +28,11 @@ let solve1 (lines: string []) =
         |> Array.mapi (fun i x -> (i, x))
         |> Map.ofArray
 
-    //print numbers
-    //print numbers.Values
     let pos = Array.init numbers.Count (fun x -> x)
     let el = Array.init numbers.Count (fun x -> x)
 
     let realpos = circularPos numbers.Count
 
-    //let find pos vp =
-    //    pos |> Array.findIndex (fun e -> e = vp)
     let findPos vp =
         //pos |> Array.findIndex (fun e -> e = vp)
         el[vp]
@@ -53,12 +49,13 @@ let solve1 (lines: string []) =
             |> List.toArray
 
     for i in 0 .. numbers.Count - 1 do
-        let offset = numbers.Item i % numbers.Count
-        printm "process" (i, offset)
+        let offset = numbers.Item i % (numbers.Count - 1)
+
+        //printm "process" (i, offset)
 
         if offset <> 0 then
 
-            printm "offset" (i, offset)
+            //printm "offset" (i, offset)
             let startPos = pos[i]
             let finishPos = startPos + offset
 
@@ -69,9 +66,6 @@ let solve1 (lines: string []) =
                     setPos idx (realpos (pos[idx] - rangedir startPos finishPos))
 
             setPos i (realpos finishPos)
-
-    //printm "newpos" pos
-    //printm "newstatus!" (status ())
 
 
     let zeroIndx = numbers |> Map.findKey (fun k v -> v = 0)
@@ -92,8 +86,6 @@ let solve1 (lines: string []) =
     print (p3, c3)
     let sln = c1 + c2 + c3
 
-    //print numbers
-    //print el
     print sln
     sln
 
