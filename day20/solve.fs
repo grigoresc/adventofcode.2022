@@ -21,11 +21,11 @@ let range1 start finish =
     else
         failwith "unexpected"
 
-let solve1 (lines: string []) =
+let solve (enckey: int64) (times: int) (lines: string []) =
     let numbers =
         lines
         |> Array.map readNumber
-        |> Array.mapi (fun i x -> (i, x))
+        |> Array.mapi (fun i x -> (i, int64 (x) * enckey))
         |> Map.ofArray
 
     let pos = Array.init numbers.Count (fun x -> x)
@@ -48,28 +48,28 @@ let solve1 (lines: string []) =
             |> List.map (fun idx -> numbers.Item idx)
             |> List.toArray
 
-    for i in 0 .. numbers.Count - 1 do
-        let offset = numbers.Item i % (numbers.Count - 1)
+    for t in 0 .. times - 1 do
 
-        //printm "process" (i, offset)
+        for i in 0 .. numbers.Count - 1 do
+            let offset = int (numbers.Item i % int64 (numbers.Count - 1))
 
-        if offset <> 0 then
+            if offset <> 0 then
 
-            //printm "offset" (i, offset)
-            let startPos = pos[i]
-            let finishPos = startPos + offset
+                let startPos = pos[i]
+                let finishPos = startPos + offset
 
-            for step in (range1 startPos finishPos) do
-                if step <> startPos then
-                    let vstep = realpos step
-                    let idx = findPos vstep
-                    setPos idx (realpos (pos[idx] - rangedir startPos finishPos))
+                for step in (range1 startPos finishPos) do
+                    if step <> startPos then
+                        let vstep = realpos step
+                        let idx = findPos vstep
+                        setPos idx (realpos (pos[idx] - rangedir startPos finishPos))
 
-            setPos i (realpos finishPos)
+                setPos i (realpos finishPos)
 
 
     let zeroIndx = numbers |> Map.findKey (fun k v -> v = 0)
     let zeroIndxs = numbers |> Map.filter (fun k v -> v = 0)
+
     print zeroIndxs
     let zeroPos = pos[zeroIndx]
 
@@ -84,9 +84,11 @@ let solve1 (lines: string []) =
     let p3 = findPos (realpos (zeroPos + 3000))
     let c3 = numbers.Item p3
     print (p3, c3)
+
     let sln = c1 + c2 + c3
 
     print sln
     sln
 
-let solve2 = solve1
+let solve1 = solve 1 1
+let solve2 = solve 811589153 10
