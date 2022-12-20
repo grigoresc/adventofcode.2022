@@ -1,6 +1,6 @@
-﻿module aoc.day16.run
+﻿module aoc.day20.run
 
-open aoc.day16.solutions
+open aoc.day20.solutions
 
 open aoc.common
 open System.IO

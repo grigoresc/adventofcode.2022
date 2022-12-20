@@ -47,7 +47,6 @@
   <ItemGroup>
     <Compile Include="day16\solve.fs" />
     <Compile Include="day16\test.fs" />
-    <Compile Include="day16\run.fs" />
     <Content Include="day01\input.txt" />
     <Content Include="day01\sample.txt" />
     <Content Include="day02\input.txt" />
@@ -78,6 +77,11 @@
     <Content Include="day14\sample.txt" />
     <Content Include="day16\input.txt" />
     <Content Include="day16\sample.txt" />
+    <Compile Include="day20\solve.fs" />
+    <Compile Include="day20\test.fs" />
+    <Compile Include="day20\run.fs" />
+    <Content Include="day20\input.txt" />
+    <Content Include="day20\sample.txt" />
   </ItemGroup>
 
   <ItemGroup>

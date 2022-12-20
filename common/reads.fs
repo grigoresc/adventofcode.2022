@@ -15,7 +15,7 @@ let readTokens (line: string) splitpattern =
 
 let readDigits (line: string) = readTokens line @"[^\d]+"
 
-let readNumber(line: string) = (readTokens line @"[^\d]+")[0]
+let readNumber (line: string) = (readTokens line @"[^\-\d]+")[0]
 
 let readMatrixOfDigits (lines: string []) =
     let v = lines |> Array.map readDigits
