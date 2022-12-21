@@ -4,37 +4,6 @@ open aoc.common
 
 let dir (x1, x2) = if x1 > x2 then -1 else 1
 
-type Boundary =
-    { minX: int
-      minY: int
-      maxX: int
-      maxY: int }
-
-let boundaries (map: Set<int * int>) =
-
-    let maxX = map |> Set.map (fun x -> fst x) |> Set.maxElement
-    let maxY = map |> Set.map (fun x -> snd x) |> Set.maxElement
-    let minX = map |> Set.map (fun x -> fst x) |> Set.minElement
-    let minY = map |> Set.map (fun x -> snd x) |> Set.minElement
-
-    { minX = minX
-      minY = minY
-      maxX = maxX
-      maxY = maxY }
-
-
-let printScreenM (map: Set<int * int>) =
-    printm "map" map.Count
-
-    let bnd = boundaries map
-    let a = Array2D.create (bnd.maxY - bnd.minY + 1) (bnd.maxX - bnd.minX + 1) "."
-
-    for p in map do
-
-        a[snd (p) - bnd.minY, fst (p) - bnd.minX] <- "#"
-
-    printScreen a
-
 let iswall1 (b: Boundary) (x, y) = false
 
 let iswall2 (b: Boundary) (x, y) = y = b.maxY + 1
@@ -98,8 +67,8 @@ let solve1 (lines: string []) =
         cnt <- cnt + 1
         c <- dropFrom (500, 0) lastok (iswall1 b) (abyss1 b)
 
-    printScreenM map
-    printScreenM lastok
+    printScreenM14 map
+    printScreenM14 lastok
     cnt
 
 let solve2 (lines: string []) =
@@ -117,6 +86,6 @@ let solve2 (lines: string []) =
 
         same <- (c.Value.Count = lastok.Count)
 
-    printScreenM map
-    printScreenM lastok
+    printScreenM14 map
+    printScreenM14 lastok
     cnt

@@ -16,6 +16,7 @@
     <Compile Include="common\reads.fs" />
     <Compile Include="common\collections.fs" />
     <Compile Include="common\print.fs" />
+    <Compile Include="common\draw.fs" />
     <Compile Include="day01\solve.fs" />
     <Compile Include="day01\test.fs" />
     <Compile Include="day02\solve.fs" />
@@ -77,6 +78,10 @@
     <Content Include="day14\sample.txt" />
     <Content Include="day16\input.txt" />
     <Content Include="day16\sample.txt" />
+    <Compile Include="day17\solve.fs" />
+    <Compile Include="day17\test.fs" />
+    <Content Include="day17\input.txt" />
+    <Content Include="day17\sample.txt" />
     <Compile Include="day20\solve.fs" />
     <Compile Include="day20\test.fs" />
     <Compile Include="day20\run.fs" />
