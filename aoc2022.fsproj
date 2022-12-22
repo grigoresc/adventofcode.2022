@@ -92,10 +92,12 @@
     <Compile Include="day21\test.fs" />
     <Content Include="day21\input.txt" />
     <Content Include="day21\sample.txt" />
+    <Compile Include="day22\solve.fs" />
+    <Compile Include="day22\test.fs" />
+    <Content Include="day22\input.txt" />
+    <Content Include="day22\sample.txt" />
     <Compile Include="run.fs" />
   </ItemGroup>
-
-  <ItemGroup />
 
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.3.2" />

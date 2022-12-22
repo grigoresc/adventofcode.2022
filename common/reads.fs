@@ -9,13 +9,17 @@ let readTokens (line: string) splitpattern =
             .Replace(line, splitpattern, " ")
             .Trim()
             .Split(' ')
-        |> Array.map int
+    //|> Array.map int
 
     v
 
-let readDigits (line: string) = readTokens line @"[^\d]+"
+let readDigits (line: string) =
+    readTokens line @"[^\d]+" |> Array.map int
 
-let readNumber (line: string) = (readTokens line @"[^\-\d]+")[0]
+let readNonDigits (line: string) = readTokens line @"[\d]+"
+
+let readNumber (line: string) =
+    ((readTokens line @"[^\-\d]+") |> Array.map int)[0]
 
 let readMatrixOfDigits (lines: string []) =
     let v = lines |> Array.map readDigits

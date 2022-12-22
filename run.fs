@@ -1,7 +1,6 @@
-﻿module aoc.day21.run
+﻿module aoc.day22.run
 
-//open aoc.day21.solutions.sample
-open aoc.day21.solutions.input
+open aoc.day22.solutions
 
 open aoc.common
 open System.IO
@@ -13,6 +12,6 @@ let run solver filename = read filename |> solver
 
 [<EntryPoint>]
 let main args =
-    let res = solveInput
+    let res = run solve1 "day22/input.txt"
     print res
     0
