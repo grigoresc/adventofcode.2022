@@ -12,6 +12,6 @@ let run solver filename = read filename |> solver
 
 [<EntryPoint>]
 let main args =
-    let res = run solve2 "day22/sample.txt"
+    let res = run (solve2 QuizType.Input) "day22/input.txt"
     print res
     0

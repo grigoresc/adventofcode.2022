@@ -7,10 +7,12 @@ type Rotate =
     | L
     | Nothing
 
-let read (lines: string []) =
+type QuizType =
+    | Input
+    | Sample
 
+let read (lines: string []) =
     let s = lines |> splitByCond (fun line -> line = "")
-    //print s
     let inst = s[1]
     let n = inst[0] |> readDigits
 
@@ -19,12 +21,9 @@ let read (lines: string []) =
         |> readNonDigits
         |> Array.map (fun x -> if x = "L" then Rotate.L else Rotate.R)
 
-    //printm "inst" (n, l)
-
     let m = s[0]
     let H = m.Length
     let W = m |> List.map (fun x -> x.Length) |> List.max
-    //print (H, W)
     let map = Array2D.create H W ' '
 
     for i in 0 .. H - 1 do
@@ -32,7 +31,6 @@ let read (lines: string []) =
             if m[i].Length > j then
                 map[i, j] <- m[i][j]
 
-    //print map
     (H, W), (n, l), map
 
 type Dir =
@@ -40,7 +38,6 @@ type Dir =
     | D
     | L
     | U
-
 
 let solve (map: char array2d, H, W, instN: int array, instL: Rotate array) (wrap: int * int * Dir -> int * int * Dir) =
     //todo - not its place here..
@@ -109,7 +106,7 @@ let solve (map: char array2d, H, W, instN: int array, instL: Rotate array) (wrap
 
             mapdraw[cx, cy] <- dirch
 
-        printScreen2 false mapdraw
+        //printScreen2 false mapdraw
         (cx, cy), cdir
 
     let move (pos: int * int, dir: Dir) (n: int) (rotate: Rotate) =
@@ -194,12 +191,6 @@ let solve1 (lines: string []) =
             (map[*, x])
             |> Array.findIndexBack (fun e -> e = '.' || e = '#'))
 
-    //print startY
-    //print endY
-    //print startX
-    //print endX
-
-
     let wrap1 (cx, cy, dir) =
         match dir with
         | Dir.R -> cx, startY[cx], dir
@@ -219,19 +210,15 @@ type next =
     | OpositeInverted
     | Last
 
-//type CubeFace = {Number:int}
 type RealCoord = { X: int; Y: int }
 
-let solve2 (lines: string []) =
+type CubeDir = { face: int; dir: Dir }
+
+let solve2_ facesGrid rules (lines: string []) =
     let (H, W), (instN, instL), map = read lines
 
-    let sampleGrid =
-        array2D [ [ 0; 0; 1; 0 ]
-                  [ 2; 3; 4; 0 ]
-                  [ 0; 0; 5; 6 ] ]
-
-    let gridW = Array2D.length2 sampleGrid
-    let gridH = Array2D.length1 sampleGrid
+    let gridW = Array2D.length2 facesGrid
+    let gridH = Array2D.length1 facesGrid
 
     let SZ = H / gridH
     assert (SZ = W / gridW)
@@ -258,18 +245,22 @@ let solve2 (lines: string []) =
         { X = cnextX; Y = cnextY }
 
     let faceByPos x y =
-        let f = sampleGrid[int (x / SZ), int (y / SZ)]
-        printm $"face for {x},{y} is" f
+        let f = facesGrid[int (x / SZ), int (y / SZ)]
+        //printm $"face for {x},{y} is" f
         f
 
-    let posByFace face =
+    let posByFace face = //todo - any other solution?
         let (x, y, v) =
-            sampleGrid
+            facesGrid
             |> Array2D.mapi (fun i j v -> (i, j, v))
             |> toArray
             |> Array.find (fun (x, y, v) -> v = face)
 
         x, y
+
+    let getNext (face: int) (dir: Dir) (c: RealCoord) =
+        let (nextFace, nextDir, (xMove, yMove)) = rules face dir
+        nextFace, nextDir, compNext xMove yMove c
 
     let faces = Array2D.init H W faceByPos
     //print faces
@@ -277,46 +268,12 @@ let solve2 (lines: string []) =
     let nextface (cx, cy, dir) =
         let face = faceByPos cx cy
 
-        let nextopBasedOn_Y_X_System (dir, face, (x, y)) = //!!!!
+        let nextopBasedOn_Y_X_System (face, dir, (x, y)) = //!!!! I need to invert X with Y here...
             let c = { X = y; Y = x } //!!!!
+            let nextface, nextDir, nextCoord = getNext face dir c
+            (nextface, nextDir, nextCoord.Y, nextCoord.X) //!!!!
 
-            let nextface, nextDir, nextCoord =
-                match dir, face with
-                | Dir.U, 1 -> 2, Dir.D, compNext Sameinverted Zero c
-                | Dir.R, 1 -> 6, Dir.L, compNext Last Sameinverted c
-                | Dir.D, 1 -> 4, Dir.D, compNext Same Zero c
-                | Dir.L, 1 -> 3, Dir.D, compNext Oposite Zero c
-
-                | Dir.U, 2 -> 1, Dir.D, compNext Sameinverted Zero c
-                | Dir.R, 2 -> 3, Dir.R, compNext Zero Same c
-                | Dir.D, 2 -> 5, Dir.U, compNext Sameinverted Last c
-                | Dir.L, 2 -> 6, Dir.U, compNext OpositeInverted Last c
-
-                | Dir.U, 3 -> 1, Dir.R, compNext Zero Oposite c
-                | Dir.R, 3 -> 4, Dir.R, compNext Zero Same c
-                | Dir.D, 3 -> 5, Dir.R, compNext Zero OpositeInverted c
-                | Dir.L, 3 -> 2, Dir.L, compNext Last Same c
-
-                | Dir.U, 4 -> 1, Dir.U, compNext Same Last c
-                | Dir.R, 4 -> 6, Dir.D, compNext OpositeInverted Zero c
-                | Dir.D, 4 -> 5, Dir.D, compNext Same Zero c
-                | Dir.L, 4 -> 3, Dir.L, compNext Last Same c
-
-                | Dir.U, 5 -> 4, Dir.U, compNext Same Last c
-                | Dir.R, 5 -> 6, Dir.R, compNext Zero Same c
-                | Dir.D, 5 -> 2, Dir.U, compNext Sameinverted Last c
-                | Dir.L, 5 -> 3, Dir.U, compNext OpositeInverted Last c
-
-                | Dir.U, 6 -> 4, Dir.L, compNext Last OpositeInverted c
-                | Dir.R, 6 -> 1, Dir.L, compNext Last Sameinverted c
-                | Dir.D, 6 -> 2, Dir.R, compNext Zero OpositeInverted c
-                | Dir.L, 6 -> 5, Dir.L, compNext Last Same c
-
-                | _ -> failwith $"missed a case here...! dir={dir},face={face}"
-
-            (nextface, nextCoord.Y, nextCoord.X, nextDir) //!!!!
-
-        let nface, x, y, ndir = nextopBasedOn_Y_X_System (dir, face, (cx, cy))
+        let nface, ndir, x, y = nextopBasedOn_Y_X_System (face, dir, (cx, cy))
 
         let origpos = posByFace nface
         let nx, ny = x % SZ + fst (origpos) * SZ, y % SZ + snd (origpos) * SZ
@@ -328,5 +285,90 @@ let solve2 (lines: string []) =
     //print wrap
     let sln = solve (map, H, W, instN, instL) wrap
     sln
-//print nextface
-//1
+
+let solve2 (quiz: QuizType) =
+
+    match quiz with
+    | Sample ->
+        let facesGrid =
+            array2D [ [ 0; 0; 1; 0 ]
+                      [ 2; 3; 4; 0 ]
+                      [ 0; 0; 5; 6 ] ]
+
+        let rules (face: int) (dir: Dir) =
+            match face, dir with
+            | 1, Dir.U -> 2, Dir.D, (Sameinverted, Zero)
+            | 1, Dir.R -> 6, Dir.L, (Last, Sameinverted)
+            | 1, Dir.D -> 4, Dir.D, (Same, Zero)
+            | 1, Dir.L -> 3, Dir.D, (Oposite, Zero)
+
+            | 2, Dir.U -> 1, Dir.D, (Sameinverted, Zero)
+            | 2, Dir.R -> 3, Dir.R, (Zero, Same)
+            | 2, Dir.D -> 5, Dir.U, (Sameinverted, Last)
+            | 2, Dir.L -> 6, Dir.U, (OpositeInverted, Last)
+
+            | 3, Dir.U -> 1, Dir.R, (Zero, Oposite)
+            | 3, Dir.R -> 4, Dir.R, (Zero, Same)
+            | 3, Dir.D -> 5, Dir.R, (Zero, OpositeInverted)
+            | 3, Dir.L -> 2, Dir.L, (Last, Same)
+
+            | 4, Dir.U -> 1, Dir.U, (Same, Last)
+            | 4, Dir.R -> 6, Dir.D, (OpositeInverted, Zero)
+            | 4, Dir.D -> 5, Dir.D, (Same, Zero)
+            | 4, Dir.L -> 3, Dir.L, (Last, Same)
+
+            | 5, Dir.U -> 4, Dir.U, (Same, Last)
+            | 5, Dir.R -> 6, Dir.R, (Zero, Same)
+            | 5, Dir.D -> 2, Dir.U, (Sameinverted, Last)
+            | 5, Dir.L -> 3, Dir.U, (OpositeInverted, Last)
+
+            | 6, Dir.U -> 4, Dir.L, (Last, OpositeInverted)
+            | 6, Dir.R -> 1, Dir.L, (Last, Sameinverted)
+            | 6, Dir.D -> 2, Dir.R, (Zero, OpositeInverted)
+            | 6, Dir.L -> 5, Dir.L, (Last, Same)
+
+            | _ -> failwith $"missed a case here...! dir={dir},face={face}"
+
+        solve2_ facesGrid rules
+    | Input ->
+        let facesGrid =
+            array2D [ [ 0; 1; 2 ]
+                      [ 0; 3; 0 ]
+                      [ 4; 5; 0 ]
+                      [ 6; 0; 0 ] ]
+
+        let rules (face: int) (dir: Dir) =
+            match face, dir with
+            | 1, Dir.U -> 6, Dir.R, (Zero, Oposite)
+            | 1, Dir.R -> 2, Dir.R, (Zero, Same)
+            | 1, Dir.D -> 3, Dir.D, (Same, Zero)
+            | 1, Dir.L -> 4, Dir.R, (Zero, Sameinverted)
+
+            | 2, Dir.U -> 6, Dir.U, (Same, Last)
+            | 2, Dir.R -> 5, Dir.L, (Last, Sameinverted)
+            | 2, Dir.D -> 3, Dir.L, (Last, Oposite)
+            | 2, Dir.L -> 1, Dir.L, (Last, Same)
+
+            | 3, Dir.U -> 1, Dir.U, (Same, Last)
+            | 3, Dir.R -> 2, Dir.U, (Oposite, Last)
+            | 3, Dir.D -> 5, Dir.D, (Same, Zero)
+            | 3, Dir.L -> 4, Dir.D, (Oposite, Zero)
+
+            | 4, Dir.U -> 3, Dir.R, (Zero, Oposite)
+            | 4, Dir.R -> 5, Dir.R, (Zero, Same)
+            | 4, Dir.D -> 6, Dir.D, (Same, Zero)
+            | 4, Dir.L -> 1, Dir.R, (Zero, Sameinverted)
+
+            | 5, Dir.U -> 3, Dir.U, (Same, Last)
+            | 5, Dir.R -> 2, Dir.L, (Last, Sameinverted)
+            | 5, Dir.D -> 6, Dir.L, (Last, Oposite)
+            | 5, Dir.L -> 4, Dir.L, (Last, Same)
+
+            | 6, Dir.U -> 4, Dir.U, (Same, Last)
+            | 6, Dir.R -> 5, Dir.U, (Oposite, Last)
+            | 6, Dir.D -> 2, Dir.D, (Same, Zero)
+            | 6, Dir.L -> 1, Dir.D, (Oposite, Zero)
+
+            | _ -> failwith $"missed a case here...! dir={dir},face={face}"
+
+        solve2_ facesGrid rules
