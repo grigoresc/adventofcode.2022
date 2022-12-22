@@ -42,41 +42,11 @@ type Dir =
     | U
 
 
-let solve (lines: string []) =
-    let (H, W), (instN, instL), map = read lines
+let solve (map: char array2d, H, W, instN: int array, instL: Rotate array) (wrap: int -> int -> Dir -> int * int) =
 
-    let startY =
-        [ 0 .. H - 1 ]
-        |> List.map (fun x ->
-            (map[x, *])
-            |> Array.findIndex (fun e -> e = '.' || e = '#'))
-
-    let endY =
-        [ 0 .. H - 1 ]
-        |> List.map (fun x ->
-            (map[x, *])
-            |> Array.findIndexBack (fun e -> e = '.' || e = '#'))
-
-    let startX =
-        [ 0 .. W - 1 ]
-        |> List.map (fun x ->
-            (map[*, x])
-            |> Array.findIndex (fun e -> e = '.' || e = '#'))
-
-    let endX =
-        [ 0 .. W - 1 ]
-        |> List.map (fun x ->
-            (map[*, x])
-            |> Array.findIndexBack (fun e -> e = '.' || e = '#'))
-
-    //print startY
-    //print endY
-    //print startX
-    //print endX
-
-    let spos = (0, startY[0])
-    printm "spos" spos
     let dir = R
+    let spos = (0, snd (wrap 0 0 dir))
+    printm "spos" spos
 
     let bounded (x, y) = 0 <= x && x < H && 0 <= y && y < W
 
@@ -86,13 +56,14 @@ let solve (lines: string []) =
 
         for i in [ 0 .. step - 1 ] do
 
-            let nextX, nextY, nextWrapX, nextWrapY =
+            let nextX, nextY =
                 match dir with
-                | Dir.R -> cx, cy + 1, cx, startY[cx]
-                | Dir.L -> cx, cy - 1, cx, endY[cx]
-                | Dir.U -> cx - 1, cy, endX[cy], cy
-                | Dir.D -> cx + 1, cy, startX[cy], cy
+                | Dir.R -> cx, cy + 1
+                | Dir.L -> cx, cy - 1
+                | Dir.U -> cx - 1, cy
+                | Dir.D -> cx + 1, cy
 
+            let nextWrapX, nextWrapY = wrap cx cy dir
             //todo how to assign mutable tuple? ("Undefined value 'copyOfStruct'" error)
             let (ncx, ncy) =
                 match nextX, nextY with
@@ -173,5 +144,90 @@ let solve (lines: string []) =
     print sln
     sln
 
-let solve1 = solve
-let solve2 = solve
+let solve1 (lines: string []) =
+    let (H, W), (instN, instL), map = read lines
+
+    let startY =
+        [ 0 .. H - 1 ]
+        |> List.map (fun x ->
+            (map[x, *])
+            |> Array.findIndex (fun e -> e = '.' || e = '#'))
+
+    let endY =
+        [ 0 .. H - 1 ]
+        |> List.map (fun x ->
+            (map[x, *])
+            |> Array.findIndexBack (fun e -> e = '.' || e = '#'))
+
+    let startX =
+        [ 0 .. W - 1 ]
+        |> List.map (fun x ->
+            (map[*, x])
+            |> Array.findIndex (fun e -> e = '.' || e = '#'))
+
+    let endX =
+        [ 0 .. W - 1 ]
+        |> List.map (fun x ->
+            (map[*, x])
+            |> Array.findIndexBack (fun e -> e = '.' || e = '#'))
+
+    //print startY
+    //print endY
+    //print startX
+    //print endX
+
+
+    let wrap1 cx cy dir =
+        match dir with
+        | Dir.R -> cx, startY[cx]
+        | Dir.L -> cx, endY[cx]
+        | Dir.U -> endX[cy], cy
+        | Dir.D -> startX[cy], cy
+
+    print wrap1
+    let sln = solve (map, H, W, instN, instL) wrap1
+    sln
+
+let solve2 (lines: string []) =
+    let (H, W), (instN, instL), map = read lines
+
+    let startY =
+        [ 0 .. H - 1 ]
+        |> List.map (fun x ->
+            (map[x, *])
+            |> Array.findIndex (fun e -> e = '.' || e = '#'))
+
+    let endY =
+        [ 0 .. H - 1 ]
+        |> List.map (fun x ->
+            (map[x, *])
+            |> Array.findIndexBack (fun e -> e = '.' || e = '#'))
+
+    let startX =
+        [ 0 .. W - 1 ]
+        |> List.map (fun x ->
+            (map[*, x])
+            |> Array.findIndex (fun e -> e = '.' || e = '#'))
+
+    let endX =
+        [ 0 .. W - 1 ]
+        |> List.map (fun x ->
+            (map[*, x])
+            |> Array.findIndexBack (fun e -> e = '.' || e = '#'))
+
+    //print startY
+    //print endY
+    //print startX
+    //print endX
+
+
+    let wrap1 cx cy dir =
+        match dir with
+        | Dir.R -> cx, startY[cx]
+        | Dir.L -> cx, endY[cx]
+        | Dir.U -> endX[cy], cy
+        | Dir.D -> startX[cy], cy
+
+    print wrap1
+    let sln = solve (map, H, W, instN, instL) wrap1
+    sln
