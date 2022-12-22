@@ -17,7 +17,6 @@ let ``Solve day 22 sample`` () =
     Assert.Equal(6032, res)
 
 [<Fact>]
-[<NCrunch.Framework.Timeout(600000)>]
 let ``Solve day 22 input`` () =
     let res = run solve1 "input.txt"
     Assert.Equal(109094, res)

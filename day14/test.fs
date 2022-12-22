@@ -12,7 +12,6 @@ let read x =
 let run solver filename = read filename |> solver
 
 [<Fact>]
-[<NCrunch.Framework.Timeout(600000)>]
 let ``Solve day 14 input`` () =
     let res = run solve1 "input.txt"
     Assert.Equal(779, res)
