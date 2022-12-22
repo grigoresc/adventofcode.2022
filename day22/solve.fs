@@ -42,17 +42,32 @@ type Dir =
     | U
 
 
-let solve (map: char array2d, H, W, instN: int array, instL: Rotate array) (wrap: int -> int -> Dir -> int * int) =
+let solve (map: char array2d, H, W, instN: int array, instL: Rotate array) (wrap: int * int -> Dir -> int * int) =
+    //todo - not its place here..
+    let startY =
+        [ 0 .. H - 1 ]
+        |> List.map (fun x ->
+            (map[x, *])
+            |> Array.findIndex (fun e -> e = '.' || e = '#'))
 
     let dir = R
-    let spos = (0, snd (wrap 0 0 dir))
-    printm "spos" spos
-
+    let spos = (0, startY[0])
+    printm "start pos" spos
+    let mapdraw = Array2D.copy map
     let bounded (x, y) = 0 <= x && x < H && 0 <= y && y < W
 
-    let moveto (x: int, y: int) (step: int) (dir: Dir) =
+    let movefrom (x: int, y: int) (step: int) (dir: Dir) =
         let mutable cx = x
         let mutable cy = y
+
+        let dirch =
+            match dir with
+            | Dir.R -> '>'
+            | Dir.L -> '<'
+            | Dir.D -> 'v'
+            | Dir.U -> '^'
+
+        mapdraw[cx, cy] <- dirch
 
         for i in [ 0 .. step - 1 ] do
 
@@ -63,7 +78,6 @@ let solve (map: char array2d, H, W, instN: int array, instL: Rotate array) (wrap
                 | Dir.U -> cx - 1, cy
                 | Dir.D -> cx + 1, cy
 
-            let nextWrapX, nextWrapY = wrap cx cy dir
             //todo how to assign mutable tuple? ("Undefined value 'copyOfStruct'" error)
             let (ncx, ncy) =
                 match nextX, nextY with
@@ -73,6 +87,8 @@ let solve (map: char array2d, H, W, instN: int array, instL: Rotate array) (wrap
                     bounded (nextX, nextY) && map[nextX, nextY] = ' '
                     || not (bounded (nextX, nextY))
                     ->
+                    let nextWrapX, nextWrapY = wrap (cx, cy) dir
+
                     if map[nextWrapX, nextWrapY] = '#' then
                         cx, cy
                     else
@@ -82,17 +98,22 @@ let solve (map: char array2d, H, W, instN: int array, instL: Rotate array) (wrap
             cx <- ncx
             cy <- ncy
 
+            let dirch =
+                match dir with
+                | Dir.R -> '>'
+                | Dir.L -> '<'
+                | Dir.D -> 'v'
+                | Dir.U -> '^'
+
+            mapdraw[cx, cy] <- dirch
+
+        printScreen2 false mapdraw
         cx, cy
 
     let move (pos: int * int, dir: Dir) (n: int) (rotate: Rotate) =
-        printm $"move from {pos} and {dir} with" (n, rotate)
-        let next = moveto pos n dir
-
-        match dir with
-        | Dir.R -> print ">"
-        | Dir.L -> print "<"
-        | Dir.D -> print "v"
-        | Dir.U -> print "^"
+        printm $"move from pos {pos} with dir {dir} with next steps" (n, rotate)
+        let next = movefrom pos n dir
+        print $"should move to {next}"
 
 
         let nextDir =
@@ -119,7 +140,7 @@ let solve (map: char array2d, H, W, instN: int array, instL: Rotate array) (wrap
                 else
                     Dir.L
 
-        print (next, nextDir)
+        //print (next, nextDir)
         next, nextDir
 
     let (ifinalPos, ifinalDir) = ((spos, Dir.R), instN, instL) |||> Seq.fold2 move
@@ -127,7 +148,7 @@ let solve (map: char array2d, H, W, instN: int array, instL: Rotate array) (wrap
     let (finalPos, finalDir) =
         move (ifinalPos, ifinalDir) (instN[instN.Length - 1]) Rotate.Nothing
 
-    print finalPos
+    printm "final pos" finalPos
 
     let dvalue =
         match finalDir with
@@ -177,7 +198,7 @@ let solve1 (lines: string []) =
     //print endX
 
 
-    let wrap1 cx cy dir =
+    let wrap1 (cx, cy) dir =
         match dir with
         | Dir.R -> cx, startY[cx]
         | Dir.L -> cx, endY[cx]
@@ -187,47 +208,123 @@ let solve1 (lines: string []) =
     print wrap1
     let sln = solve (map, H, W, instN, instL) wrap1
     sln
+
+type next =
+    | Zero
+    | Same
+    | Sameinverted
+    | Oposite
+    | OpositeInverted
+    | Last
+
+//type CubeFace = {Number:int}
+type RealCoord = { X: int; Y: int }
 
 let solve2 (lines: string []) =
     let (H, W), (instN, instL), map = read lines
 
-    let startY =
-        [ 0 .. H - 1 ]
-        |> List.map (fun x ->
-            (map[x, *])
-            |> Array.findIndex (fun e -> e = '.' || e = '#'))
+    let sampleGrid =
+        array2D [ [ 0; 0; 1; 0 ]
+                  [ 2; 3; 4; 0 ]
+                  [ 0; 0; 5; 6 ] ]
 
-    let endY =
-        [ 0 .. H - 1 ]
-        |> List.map (fun x ->
-            (map[x, *])
-            |> Array.findIndexBack (fun e -> e = '.' || e = '#'))
+    let gridW = Array2D.length2 sampleGrid
+    let gridH = Array2D.length1 sampleGrid
 
-    let startX =
-        [ 0 .. W - 1 ]
-        |> List.map (fun x ->
-            (map[*, x])
-            |> Array.findIndex (fun e -> e = '.' || e = '#'))
+    let SZ = H / gridH
+    assert (SZ = W / gridW)
 
-    let endX =
-        [ 0 .. W - 1 ]
-        |> List.map (fun x ->
-            (map[*, x])
-            |> Array.findIndexBack (fun e -> e = '.' || e = '#'))
+    let compNext (nextX: next) (nextY: next) (c: RealCoord) =
+        let cnextX =
+            match nextX with
+            | Zero -> 0
+            | Same -> c.X % SZ
+            | Sameinverted -> SZ - 1 - c.X % SZ
+            | Oposite -> c.Y % SZ
+            | OpositeInverted -> SZ - 1 - c.Y % SZ
+            | Last -> SZ - 1
 
-    //print startY
-    //print endY
-    //print startX
-    //print endX
+        let cnextY =
+            match nextY with
+            | Zero -> 0
+            | Same -> c.Y % SZ
+            | Sameinverted -> SZ - 1 - c.Y % SZ
+            | Oposite -> c.X % SZ
+            | OpositeInverted -> SZ - 1 - c.X % SZ
+            | Last -> SZ - 1
 
+        { X = cnextX; Y = cnextY }
 
-    let wrap1 cx cy dir =
-        match dir with
-        | Dir.R -> cx, startY[cx]
-        | Dir.L -> cx, endY[cx]
-        | Dir.U -> endX[cy], cy
-        | Dir.D -> startX[cy], cy
+    let faceByPos x y =
+        let f = sampleGrid[int (x / SZ), int (y / SZ)]
+        printm $"face for {x},{y} is" f
+        f
 
-    print wrap1
-    let sln = solve (map, H, W, instN, instL) wrap1
+    let posByFace face =
+        let (x, y, v) =
+            sampleGrid
+            |> Array2D.mapi (fun i j v -> (i, j, v))
+            |> toArray
+            |> Array.find (fun (x, y, v) -> v = face)
+
+        x, y
+
+    let faces = Array2D.init H W faceByPos
+    //print faces
+
+    let nextface (cx, cy) dir =
+        let face = faceByPos cx cy
+
+        let nextopBasedOn_Y_X_System (dir, face, (x, y)) = //!!!!
+            let c = { X = y; Y = x } //!!!!
+
+            let comp =
+                match dir, face with
+                | Dir.U, 1 -> 2, compNext Sameinverted Zero c
+                | Dir.R, 1 -> 6, compNext Last Sameinverted c
+                | Dir.D, 1 -> 4, compNext Same Zero c
+                | Dir.L, 1 -> 3, compNext Oposite Zero c
+
+                | Dir.U, 2 -> 1, compNext Sameinverted Zero c
+                | Dir.R, 2 -> 3, compNext Zero Same c
+                | Dir.D, 2 -> 5, compNext Sameinverted Last c
+                | Dir.L, 2 -> 6, compNext OpositeInverted Last c
+
+                | Dir.U, 3 -> 1, compNext Zero Oposite c
+                | Dir.R, 3 -> 4, compNext Zero Same c
+                | Dir.D, 3 -> 5, compNext Zero OpositeInverted c
+                | Dir.L, 3 -> 2, compNext Last Same c
+
+                | Dir.U, 4 -> 1, compNext Same Last c
+                | Dir.R, 4 -> 6, compNext OpositeInverted Zero c
+                | Dir.D, 4 -> 5, compNext Same Zero c
+                | Dir.L, 4 -> 3, compNext Last Same c
+
+                | Dir.U, 5 -> 4, compNext Same Last c
+                | Dir.R, 5 -> 6, compNext Zero Same c
+                | Dir.D, 5 -> 2, compNext Sameinverted Last c
+                | Dir.L, 5 -> 3, compNext OpositeInverted Last c
+
+                | Dir.U, 6 -> 4, compNext Last OpositeInverted c
+                | Dir.R, 6 -> 1, compNext Last Sameinverted c
+                | Dir.D, 6 -> 2, compNext Zero OpositeInverted c
+                | Dir.L, 6 -> 5, compNext Last Same c
+
+                | _ -> failwith $"missed a case here...! dir={dir},face={face}"
+
+            (fst (comp), (snd (comp)).Y, (snd (comp)).X) //!!!!
+
+        let nface, x, y = nextopBasedOn_Y_X_System (dir, face, (cx, cy))
+
+        let origpos = posByFace nface
+        let nx, ny = x % SZ + fst (origpos) * SZ, y % SZ + snd (origpos) * SZ
+        printm $"recalc for pos {cx},{cy}: nface={nface} origpos={origpos} x={x} y={y}" (nx, ny)
+        (nx, ny)
+
+    let wrap (cx, cy) dir = nextface (cx, cy) dir
+
+    //print wrap
+    let sln = solve (map, H, W, instN, instL) wrap
     sln
+//print nextface
+//1

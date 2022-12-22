@@ -7,6 +7,19 @@ let printm msg x = printfn "%s>%A" msg x
 let printmPadded n msg x =
     printfn "%s %s>%A" (atoString (Array.create n " ")) msg x
 
+//todo - how can I overload?
+let printScreen2 (upsidedown: bool) (a: char [,]) =
+    if upsidedown then
+        let n = Array2D.length1 a
+
+        a
+        |> toStrings2
+        |> Seq.rev
+        |> Seq.iteri (fun i x -> printfn "%3i |%s| %3i" (n - i - 1) x (n - i - 1))
+    else
+        a
+        |> toStrings2
+        |> Seq.iteri (fun i x -> printfn "%3i |%s| %3i" i x i)
 
 let printScreen (upsidedown: bool) (a: string [,]) =
     if upsidedown then

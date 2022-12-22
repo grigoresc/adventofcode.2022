@@ -12,6 +12,6 @@ let run solver filename = read filename |> solver
 
 [<EntryPoint>]
 let main args =
-    let res = run solve1 "day22/input.txt"
+    let res = run solve2 "day22/sample.txt"
     print res
     0
