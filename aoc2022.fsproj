@@ -84,10 +84,18 @@
     <Content Include="day17\sample.txt" />
     <Compile Include="day20\solve.fs" />
     <Compile Include="day20\test.fs" />
-    <Compile Include="day20\run.fs" />
     <Content Include="day20\input.txt" />
     <Content Include="day20\sample.txt" />
+    <None Include="day21\readme.md" />
+    <Compile Include="day21\solveSample.fs" />
+    <Compile Include="day21\solveInput.fs" />
+    <Compile Include="day21\test.fs" />
+    <Content Include="day21\input.txt" />
+    <Content Include="day21\sample.txt" />
+    <Compile Include="run.fs" />
   </ItemGroup>
+
+  <ItemGroup />
 
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.3.2" />
@@ -101,6 +109,10 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="day21\day21.fsproj" />
   </ItemGroup>
 
 </Project>
