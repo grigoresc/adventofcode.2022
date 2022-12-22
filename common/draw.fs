@@ -29,7 +29,7 @@ let printScreenM14 (map: Set<int * int>) =
 
         a[snd (p) - bnd.minY, fst (p) - bnd.minX] <- "#"
 
-    printScreen false a
+    printMatrix false a
 
 let printScreenM17 (boundary: Boundary) (upsidedown: bool) (map: Set<int * int>) =
     printm "map" map.Count
@@ -49,4 +49,4 @@ let printScreenM17 (boundary: Boundary) (upsidedown: bool) (map: Set<int * int>)
         a[snd (p) - bnd.minY, fst (p) - bnd.minX] <- "#"
 
     //print a
-    printScreen upsidedown a
+    printMatrix upsidedown a

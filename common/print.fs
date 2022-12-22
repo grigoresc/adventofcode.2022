@@ -7,7 +7,7 @@ let printm msg x = printfn "%s>%A" msg x
 let printmPadded n msg x =
     printfn "%s %s>%A" (atoString (Array.create n " ")) msg x
 
-let printScreen<'T> (upsidedown: bool) (a: 'T [,]) =
+let printMatrix<'T> (upsidedown: bool) (a: 'T [,]) =
     if upsidedown then
         let n = Array2D.length1 a
 

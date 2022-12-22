@@ -12,6 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="common\convert.fs" />
     <Compile Include="common\memoize.fs" />
     <Compile Include="common\reads.fs" />
     <Compile Include="common\collections.fs" />

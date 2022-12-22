@@ -12,26 +12,33 @@ type QuizType =
     | Sample
 
 let read (lines: string []) =
-    let s = lines |> splitByCond (fun line -> line = "")
-    let inst = s[1]
-    let n = inst[0] |> readNumbers
+    let mapPart, cmdPart =
+        lines
+        |> splitByCond (fun line -> line = "")
+        |> asTupleOf2
 
-    let l =
-        inst[0]
+    let steps = cmdPart[0] |> readNumbers
+
+    let rotates =
+        cmdPart[0]
         |> readNonNumbers
         |> Array.map (fun x -> if x = "L" then Rotate.L else Rotate.R)
 
-    let m = s[0]
-    let H = m.Length
-    let W = m |> List.map (fun x -> x.Length) |> List.max
+    let H = mapPart.Length
+
+    let W =
+        mapPart
+        |> List.map (fun x -> x.Length)
+        |> List.max
+
     let map = Array2D.create H W ' '
 
     for i in 0 .. H - 1 do
         for j in 0 .. W - 1 do
-            if m[i].Length > j then
-                map[i, j] <- m[i][j]
+            if mapPart[i].Length > j then
+                map[i, j] <- mapPart[i][j]
 
-    (H, W), (n, l), map
+    steps, rotates, map
 
 type Dir =
     | R
@@ -45,98 +52,76 @@ let DirChar =
            (Dir.D, 'v')
            (Dir.U, '^') ]
 
-let solve (map: char array2d, H, W, instN: int array, instL: Rotate array) (wrap: int * int * Dir -> int * int * Dir) =
-    //todo - not its place here..
-    let startY =
-        [ 0 .. H - 1 ]
-        |> List.map (fun x ->
-            (map[x, *])
-            |> Array.findIndex (fun e -> e = '.' || e = '#'))
+let solve (map: char array2d, steps: int array, rotations: Rotate array) (wrap: int * int * Dir -> int * int * Dir) =
+
+    let (H, W) = (Array2D.length1 map, Array2D.length2 map)
+    let (_, startY) = array2d_findIndex map (fun e -> e = '.' || e = '#')
 
     let dir = R
     let spos = (0, startY[0])
-    //printm "start pos" spos
+    printm "initial pos" spos
     let mapToPrint = Array2D.copy map
     let bounded (x, y) = 0 <= x && x < H && 0 <= y && y < W
 
-    let movefrom (x: int, y: int) (step: int) (dir: Dir) =
-        let mutable cx = x
-        let mutable cy = y
-        let mutable cdir = dir
+    let moveFrom (x: int, y: int) (dir: Dir) (steps: int) =
 
-        mapToPrint[cx, cy] <- DirChar.Item cdir
+        mapToPrint[x, y] <- DirChar.Item dir
 
-        for i in [ 0 .. step - 1 ] do
+        let (rx, ry, rdir) =
+            ((x, y, dir), { 0 .. steps - 1 })
+            ||> Seq.fold (fun (cx, cy, cdir) step ->
+                let nextX, nextY =
+                    match cdir with
+                    | Dir.R -> cx, cy + 1
+                    | Dir.L -> cx, cy - 1
+                    | Dir.U -> cx - 1, cy
+                    | Dir.D -> cx + 1, cy
 
-            let nextX, nextY =
-                match cdir with
-                | Dir.R -> cx, cy + 1
-                | Dir.L -> cx, cy - 1
-                | Dir.U -> cx - 1, cy
-                | Dir.D -> cx + 1, cy
+                let (ncx, ncy, ncdir) =
+                    match nextX, nextY with
+                    | nextX, nextY when bounded (nextX, nextY) && map[nextX, nextY] = '.' -> nextX, nextY, cdir
+                    | nextX, nextY when bounded (nextX, nextY) && map[nextX, nextY] = '#' -> cx, cy, cdir
+                    | nextX, nextY when
+                        bounded (nextX, nextY) && map[nextX, nextY] = ' '
+                        || not (bounded (nextX, nextY))
+                        ->
+                        let nextWrapX, nextWrapY, nextDir = wrap (cx, cy, cdir)
 
-            let (ncx, ncy, ncdir) =
-                match nextX, nextY with
-                | nextX, nextY when bounded (nextX, nextY) && map[nextX, nextY] = '.' -> nextX, nextY, cdir
-                | nextX, nextY when bounded (nextX, nextY) && map[nextX, nextY] = '#' -> cx, cy, cdir
-                | nextX, nextY when
-                    bounded (nextX, nextY) && map[nextX, nextY] = ' '
-                    || not (bounded (nextX, nextY))
-                    ->
-                    let nextWrapX, nextWrapY, nextDir = wrap (cx, cy, cdir)
+                        if map[nextWrapX, nextWrapY] = '#' then
+                            cx, cy, cdir
+                        else
+                            nextWrapX, nextWrapY, nextDir
+                    | _ -> failwith "unexpected case"
 
-                    if map[nextWrapX, nextWrapY] = '#' then
-                        cx, cy, cdir
-                    else
-                        nextWrapX, nextWrapY, nextDir
-                | _ -> failwith "unexpected case"
-
-            cx <- ncx
-            cy <- ncy
-            cdir <- ncdir
-
-            mapToPrint[cx, cy] <- DirChar.Item cdir
+                mapToPrint[ncx, ncy] <- DirChar.Item ncdir
+                (ncx, ncy, ncdir))
 
         //printScreen false mapToPrint
-        (cx, cy), cdir
+        (rx, ry), rdir
 
-    let move (pos: int * int, dir: Dir) (n: int) (rotate: Rotate) =
-        //printm $"move from pos {pos} with dir {dir} with next steps" (n, rotate)
-        let next, cdir = movefrom pos n dir
-        //print $"moved to {next}"
-
+    let move (pos: int * int, dir: Dir) (steps: int) (rotate: Rotate) =
+        let nextPos, cdir = moveFrom pos dir steps
 
         let nextDir =
             match cdir, rotate with
             | _, Rotate.Nothing -> dir
-            | Dir.R, _ ->
-                if rotate = Rotate.R then
-                    Dir.D
-                else
-                    Dir.U
-            | Dir.L, _ ->
-                if rotate = Rotate.R then
-                    Dir.U
-                else
-                    Dir.D
-            | Dir.D, _ ->
-                if rotate = Rotate.R then
-                    Dir.L
-                else
-                    Dir.R
-            | Dir.U, _ ->
-                if rotate = Rotate.R then
-                    Dir.R
-                else
-                    Dir.L
+            | Dir.R, Rotate.R -> Dir.D
+            | Dir.R, Rotate.L -> Dir.U
+            | Dir.L, Rotate.R -> Dir.U
+            | Dir.L, Rotate.L -> Dir.D
+            | Dir.D, Rotate.R -> Dir.L
+            | Dir.D, Rotate.L -> Dir.R
+            | Dir.U, Rotate.R -> Dir.R
+            | Dir.U, Rotate.L -> Dir.L
 
-        //print (next, nextDir)
-        next, nextDir
+        nextPos, nextDir
 
-    let (ifinalPos, ifinalDir) = ((spos, Dir.R), instN, instL) |||> Seq.fold2 move
+    let (ifinalPos, ifinalDir) =
+        ((spos, Dir.R), steps, rotations)
+        |||> Seq.fold2 move
 
     let (finalPos, finalDir) =
-        move (ifinalPos, ifinalDir) (instN[instN.Length - 1]) Rotate.Nothing
+        move (ifinalPos, ifinalDir) (steps[steps.Length - 1]) Rotate.Nothing
 
     printm "final pos" finalPos
 
@@ -152,36 +137,16 @@ let solve (map: char array2d, H, W, instN: int array, instL: Rotate array) (wrap
         + 4 * (snd (finalPos) + 1)
         + dvalue
 
-    printScreen false mapToPrint
+    printMatrix false mapToPrint
     print sln
     sln
 
+
 let solve1 (lines: string []) =
-    let (H, W), (instN, instL), map = read lines
+    let steps, rotations, map = read lines
 
-    let startY =
-        [ 0 .. H - 1 ]
-        |> List.map (fun x ->
-            (map[x, *])
-            |> Array.findIndex (fun e -> e = '.' || e = '#'))
-
-    let endY =
-        [ 0 .. H - 1 ]
-        |> List.map (fun x ->
-            (map[x, *])
-            |> Array.findIndexBack (fun e -> e = '.' || e = '#'))
-
-    let startX =
-        [ 0 .. W - 1 ]
-        |> List.map (fun x ->
-            (map[*, x])
-            |> Array.findIndex (fun e -> e = '.' || e = '#'))
-
-    let endX =
-        [ 0 .. W - 1 ]
-        |> List.map (fun x ->
-            (map[*, x])
-            |> Array.findIndexBack (fun e -> e = '.' || e = '#'))
+    let startX, startY = array2d_findIndex map (fun e -> e = '.' || e = '#')
+    let endX, endY = array2d_findIndexBack map (fun e -> e = '.' || e = '#')
 
     let wrap1 (cx, cy, dir) =
         match dir with
@@ -190,7 +155,7 @@ let solve1 (lines: string []) =
         | Dir.U -> endX[cy], cy, dir
         | Dir.D -> startX[cy], cy, dir
 
-    let sln = solve (map, H, W, instN, instL) wrap1
+    let sln = solve (map, steps, rotations) wrap1
     sln
 
 type next =
@@ -204,10 +169,10 @@ type next =
 type RealCoord = { X: int; Y: int }
 
 let solve2ByRules facesGrid rules (lines: string []) =
-    let (H, W), (instN, instL), map = read lines
+    let steps, rotations, map = read lines
 
-    let gridW = Array2D.length2 facesGrid
-    let gridH = Array2D.length1 facesGrid
+    let H, W = Array2D.length1 map, Array2D.length2 map
+    let gridH, gridW = Array2D.length1 facesGrid, Array2D.length2 facesGrid
 
     let SZ = H / gridH
     assert (SZ = W / gridW)
@@ -249,8 +214,9 @@ let solve2ByRules facesGrid rules (lines: string []) =
         nextFace, nextDir, compNext xMove yMove c
 
     let faces = Array2D.init H W faceByPos
+    printMatrix false faces
 
-    let nextface (cx, cy, dir) =
+    let nextFace (cx, cy, dir) =
         let face = faceByPos cx cy
 
         let nextopBasedOn_Y_X_System (face, dir, (x, y)) = //!!!! I need to invert X with Y here...
@@ -265,9 +231,9 @@ let solve2ByRules facesGrid rules (lines: string []) =
         //printm $"recalc for pos {cx},{cy}: nface={nface} origpos={origpos} x={x} y={y}; also newdir={ndir}" (nx, ny)
         (nx, ny, ndir)
 
-    let wrap (cx, cy, dir) = nextface (cx, cy, dir)
+    let wrap2 (cx, cy, dir) = nextFace (cx, cy, dir)
 
-    let sln = solve (map, H, W, instN, instL) wrap
+    let sln = solve (map, steps, rotations) wrap2
     sln
 
 let solve2 (quiz: QuizType) =
