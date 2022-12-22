@@ -284,4 +284,3 @@ let solve2 (lines: string []) =
     let maxY = getHeight (snd (filled))
     print (rocksnumberRun, maxY)
     maxY
-    1
