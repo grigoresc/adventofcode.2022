@@ -19,7 +19,7 @@ let read (lines: string []) =
 
     let steps = cmdPart[0] |> readNumbers
 
-    let rotates =
+    let rotations =
         cmdPart[0]
         |> readNonNumbers
         |> Array.map (fun x -> if x = "L" then Rotate.L else Rotate.R)
@@ -38,7 +38,7 @@ let read (lines: string []) =
             if mapPart[i].Length > j then
                 map[i, j] <- mapPart[i][j]
 
-    steps, rotates, map
+    steps, rotations, map
 
 type Dir =
     | R
@@ -54,8 +54,8 @@ let DirChar =
 
 let solve (map: char array2d, steps: int array, rotations: Rotate array) (wrap: int * int * Dir -> int * int * Dir) =
 
-    let (H, W) = (Array2D.length1 map, Array2D.length2 map)
-    let (_, startY) = array2d_findIndex map (fun e -> e = '.' || e = '#')
+    let H, W = Array2D.lengths map
+    let (_, startY) = Array2D.findIndex map (fun e -> e = '.' || e = '#')
 
     let dir = R
     let spos = (0, startY[0])
@@ -145,8 +145,8 @@ let solve (map: char array2d, steps: int array, rotations: Rotate array) (wrap: 
 let solve1 (lines: string []) =
     let steps, rotations, map = read lines
 
-    let startX, startY = array2d_findIndex map (fun e -> e = '.' || e = '#')
-    let endX, endY = array2d_findIndexBack map (fun e -> e = '.' || e = '#')
+    let startX, startY = Array2D.findIndex map (fun e -> e = '.' || e = '#')
+    let endX, endY = Array2D.findIndexBack map (fun e -> e = '.' || e = '#')
 
     let wrap1 (cx, cy, dir) =
         match dir with
@@ -171,8 +171,8 @@ type RealCoord = { X: int; Y: int }
 let solve2ByRules facesGrid rules (lines: string []) =
     let steps, rotations, map = read lines
 
-    let H, W = Array2D.length1 map, Array2D.length2 map
-    let gridH, gridW = Array2D.length1 facesGrid, Array2D.length2 facesGrid
+    let H, W = Array2D.lengths map
+    let gridH, gridW = Array2D.lengths facesGrid
 
     let SZ = H / gridH
     assert (SZ = W / gridW)
