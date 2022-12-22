@@ -42,7 +42,7 @@ type Dir =
     | U
 
 
-let solve (map: char array2d, H, W, instN: int array, instL: Rotate array) (wrap: int * int -> Dir -> int * int) =
+let solve (map: char array2d, H, W, instN: int array, instL: Rotate array) (wrap: int * int * Dir -> int * int * Dir) =
     //todo - not its place here..
     let startY =
         [ 0 .. H - 1 ]
@@ -59,9 +59,10 @@ let solve (map: char array2d, H, W, instN: int array, instL: Rotate array) (wrap
     let movefrom (x: int, y: int) (step: int) (dir: Dir) =
         let mutable cx = x
         let mutable cy = y
+        let mutable cdir = dir
 
         let dirch =
-            match dir with
+            match cdir with
             | Dir.R -> '>'
             | Dir.L -> '<'
             | Dir.D -> 'v'
@@ -72,34 +73,35 @@ let solve (map: char array2d, H, W, instN: int array, instL: Rotate array) (wrap
         for i in [ 0 .. step - 1 ] do
 
             let nextX, nextY =
-                match dir with
+                match cdir with
                 | Dir.R -> cx, cy + 1
                 | Dir.L -> cx, cy - 1
                 | Dir.U -> cx - 1, cy
                 | Dir.D -> cx + 1, cy
 
             //todo how to assign mutable tuple? ("Undefined value 'copyOfStruct'" error)
-            let (ncx, ncy) =
+            let (ncx, ncy, ncdir) =
                 match nextX, nextY with
-                | nextX, nextY when bounded (nextX, nextY) && map[nextX, nextY] = '.' -> nextX, nextY
-                | nextX, nextY when bounded (nextX, nextY) && map[nextX, nextY] = '#' -> cx, cy
+                | nextX, nextY when bounded (nextX, nextY) && map[nextX, nextY] = '.' -> nextX, nextY, cdir
+                | nextX, nextY when bounded (nextX, nextY) && map[nextX, nextY] = '#' -> cx, cy, cdir
                 | nextX, nextY when
                     bounded (nextX, nextY) && map[nextX, nextY] = ' '
                     || not (bounded (nextX, nextY))
                     ->
-                    let nextWrapX, nextWrapY = wrap (cx, cy) dir
+                    let nextWrapX, nextWrapY, nextDir = wrap (cx, cy, cdir)
 
                     if map[nextWrapX, nextWrapY] = '#' then
-                        cx, cy
+                        cx, cy, cdir
                     else
-                        nextWrapX, nextWrapY
+                        nextWrapX, nextWrapY, nextDir
                 | _ -> failwith "unexpected case"
 
             cx <- ncx
             cy <- ncy
+            cdir <- ncdir
 
             let dirch =
-                match dir with
+                match cdir with
                 | Dir.R -> '>'
                 | Dir.L -> '<'
                 | Dir.D -> 'v'
@@ -108,16 +110,16 @@ let solve (map: char array2d, H, W, instN: int array, instL: Rotate array) (wrap
             mapdraw[cx, cy] <- dirch
 
         printScreen2 false mapdraw
-        cx, cy
+        (cx, cy), cdir
 
     let move (pos: int * int, dir: Dir) (n: int) (rotate: Rotate) =
         printm $"move from pos {pos} with dir {dir} with next steps" (n, rotate)
-        let next = movefrom pos n dir
-        print $"should move to {next}"
+        let next, cdir = movefrom pos n dir
+        print $"moved to {next}"
 
 
         let nextDir =
-            match dir, rotate with
+            match cdir, rotate with
             | _, Rotate.Nothing -> dir
             | Dir.R, _ ->
                 if rotate = Rotate.R then
@@ -198,12 +200,12 @@ let solve1 (lines: string []) =
     //print endX
 
 
-    let wrap1 (cx, cy) dir =
+    let wrap1 (cx, cy, dir) =
         match dir with
-        | Dir.R -> cx, startY[cx]
-        | Dir.L -> cx, endY[cx]
-        | Dir.U -> endX[cy], cy
-        | Dir.D -> startX[cy], cy
+        | Dir.R -> cx, startY[cx], dir
+        | Dir.L -> cx, endY[cx], dir
+        | Dir.U -> endX[cy], cy, dir
+        | Dir.D -> startX[cy], cy, dir
 
     print wrap1
     let sln = solve (map, H, W, instN, instL) wrap1
@@ -272,56 +274,56 @@ let solve2 (lines: string []) =
     let faces = Array2D.init H W faceByPos
     //print faces
 
-    let nextface (cx, cy) dir =
+    let nextface (cx, cy, dir) =
         let face = faceByPos cx cy
 
         let nextopBasedOn_Y_X_System (dir, face, (x, y)) = //!!!!
             let c = { X = y; Y = x } //!!!!
 
-            let comp =
+            let nextface, nextDir, nextCoord =
                 match dir, face with
-                | Dir.U, 1 -> 2, compNext Sameinverted Zero c
-                | Dir.R, 1 -> 6, compNext Last Sameinverted c
-                | Dir.D, 1 -> 4, compNext Same Zero c
-                | Dir.L, 1 -> 3, compNext Oposite Zero c
+                | Dir.U, 1 -> 2, Dir.D, compNext Sameinverted Zero c
+                | Dir.R, 1 -> 6, Dir.L, compNext Last Sameinverted c
+                | Dir.D, 1 -> 4, Dir.D, compNext Same Zero c
+                | Dir.L, 1 -> 3, Dir.D, compNext Oposite Zero c
 
-                | Dir.U, 2 -> 1, compNext Sameinverted Zero c
-                | Dir.R, 2 -> 3, compNext Zero Same c
-                | Dir.D, 2 -> 5, compNext Sameinverted Last c
-                | Dir.L, 2 -> 6, compNext OpositeInverted Last c
+                | Dir.U, 2 -> 1, Dir.D, compNext Sameinverted Zero c
+                | Dir.R, 2 -> 3, Dir.R, compNext Zero Same c
+                | Dir.D, 2 -> 5, Dir.U, compNext Sameinverted Last c
+                | Dir.L, 2 -> 6, Dir.U, compNext OpositeInverted Last c
 
-                | Dir.U, 3 -> 1, compNext Zero Oposite c
-                | Dir.R, 3 -> 4, compNext Zero Same c
-                | Dir.D, 3 -> 5, compNext Zero OpositeInverted c
-                | Dir.L, 3 -> 2, compNext Last Same c
+                | Dir.U, 3 -> 1, Dir.R, compNext Zero Oposite c
+                | Dir.R, 3 -> 4, Dir.R, compNext Zero Same c
+                | Dir.D, 3 -> 5, Dir.R, compNext Zero OpositeInverted c
+                | Dir.L, 3 -> 2, Dir.L, compNext Last Same c
 
-                | Dir.U, 4 -> 1, compNext Same Last c
-                | Dir.R, 4 -> 6, compNext OpositeInverted Zero c
-                | Dir.D, 4 -> 5, compNext Same Zero c
-                | Dir.L, 4 -> 3, compNext Last Same c
+                | Dir.U, 4 -> 1, Dir.U, compNext Same Last c
+                | Dir.R, 4 -> 6, Dir.D, compNext OpositeInverted Zero c
+                | Dir.D, 4 -> 5, Dir.D, compNext Same Zero c
+                | Dir.L, 4 -> 3, Dir.L, compNext Last Same c
 
-                | Dir.U, 5 -> 4, compNext Same Last c
-                | Dir.R, 5 -> 6, compNext Zero Same c
-                | Dir.D, 5 -> 2, compNext Sameinverted Last c
-                | Dir.L, 5 -> 3, compNext OpositeInverted Last c
+                | Dir.U, 5 -> 4, Dir.U, compNext Same Last c
+                | Dir.R, 5 -> 6, Dir.R, compNext Zero Same c
+                | Dir.D, 5 -> 2, Dir.U, compNext Sameinverted Last c
+                | Dir.L, 5 -> 3, Dir.U, compNext OpositeInverted Last c
 
-                | Dir.U, 6 -> 4, compNext Last OpositeInverted c
-                | Dir.R, 6 -> 1, compNext Last Sameinverted c
-                | Dir.D, 6 -> 2, compNext Zero OpositeInverted c
-                | Dir.L, 6 -> 5, compNext Last Same c
+                | Dir.U, 6 -> 4, Dir.L, compNext Last OpositeInverted c
+                | Dir.R, 6 -> 1, Dir.L, compNext Last Sameinverted c
+                | Dir.D, 6 -> 2, Dir.R, compNext Zero OpositeInverted c
+                | Dir.L, 6 -> 5, Dir.L, compNext Last Same c
 
                 | _ -> failwith $"missed a case here...! dir={dir},face={face}"
 
-            (fst (comp), (snd (comp)).Y, (snd (comp)).X) //!!!!
+            (nextface, nextCoord.Y, nextCoord.X, nextDir) //!!!!
 
-        let nface, x, y = nextopBasedOn_Y_X_System (dir, face, (cx, cy))
+        let nface, x, y, ndir = nextopBasedOn_Y_X_System (dir, face, (cx, cy))
 
         let origpos = posByFace nface
         let nx, ny = x % SZ + fst (origpos) * SZ, y % SZ + snd (origpos) * SZ
-        printm $"recalc for pos {cx},{cy}: nface={nface} origpos={origpos} x={x} y={y}" (nx, ny)
-        (nx, ny)
+        printm $"recalc for pos {cx},{cy}: nface={nface} origpos={origpos} x={x} y={y}; also newdir={ndir}" (nx, ny)
+        (nx, ny, ndir)
 
-    let wrap (cx, cy) dir = nextface (cx, cy) dir
+    let wrap (cx, cy, dir) = nextface (cx, cy, dir)
 
     //print wrap
     let sln = solve (map, H, W, instN, instL) wrap
