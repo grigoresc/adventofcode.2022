@@ -20,7 +20,7 @@ let parseOp (line: string) =
     | _ -> failwith "cannot parse"
 
 let parseMonkey (lines: string list) =
-    { originalItems = readDigits lines[1]
+    { originalItems = readNumbers lines[1]
       op = parseOp lines[2]
       div = bigint (readNumber lines[3])
       iftrue = readNumber lines[4]

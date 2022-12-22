@@ -33,7 +33,7 @@ let read (lines: string []) =
         lines
         |> Array.map (fun x ->
             x.Split " -> "
-            |> Array.map readDigits
+            |> Array.map readNumbers
             |> Array.map (fun x -> x[0], x[1]))
 
 

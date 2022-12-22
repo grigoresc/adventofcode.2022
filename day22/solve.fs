@@ -14,11 +14,11 @@ type QuizType =
 let read (lines: string []) =
     let s = lines |> splitByCond (fun line -> line = "")
     let inst = s[1]
-    let n = inst[0] |> readDigits
+    let n = inst[0] |> readNumbers
 
     let l =
         inst[0]
-        |> readNonDigits
+        |> readNonNumbers
         |> Array.map (fun x -> if x = "L" then Rotate.L else Rotate.R)
 
     let m = s[0]
@@ -39,6 +39,12 @@ type Dir =
     | L
     | U
 
+let DirChar =
+    dict [ (Dir.R, '>')
+           (Dir.L, '<')
+           (Dir.D, 'v')
+           (Dir.U, '^') ]
+
 let solve (map: char array2d, H, W, instN: int array, instL: Rotate array) (wrap: int * int * Dir -> int * int * Dir) =
     //todo - not its place here..
     let startY =
@@ -49,8 +55,8 @@ let solve (map: char array2d, H, W, instN: int array, instL: Rotate array) (wrap
 
     let dir = R
     let spos = (0, startY[0])
-    printm "start pos" spos
-    let mapdraw = Array2D.copy map
+    //printm "start pos" spos
+    let mapToPrint = Array2D.copy map
     let bounded (x, y) = 0 <= x && x < H && 0 <= y && y < W
 
     let movefrom (x: int, y: int) (step: int) (dir: Dir) =
@@ -58,14 +64,7 @@ let solve (map: char array2d, H, W, instN: int array, instL: Rotate array) (wrap
         let mutable cy = y
         let mutable cdir = dir
 
-        let dirch =
-            match cdir with
-            | Dir.R -> '>'
-            | Dir.L -> '<'
-            | Dir.D -> 'v'
-            | Dir.U -> '^'
-
-        mapdraw[cx, cy] <- dirch
+        mapToPrint[cx, cy] <- DirChar.Item cdir
 
         for i in [ 0 .. step - 1 ] do
 
@@ -76,7 +75,6 @@ let solve (map: char array2d, H, W, instN: int array, instL: Rotate array) (wrap
                 | Dir.U -> cx - 1, cy
                 | Dir.D -> cx + 1, cy
 
-            //todo how to assign mutable tuple? ("Undefined value 'copyOfStruct'" error)
             let (ncx, ncy, ncdir) =
                 match nextX, nextY with
                 | nextX, nextY when bounded (nextX, nextY) && map[nextX, nextY] = '.' -> nextX, nextY, cdir
@@ -97,22 +95,15 @@ let solve (map: char array2d, H, W, instN: int array, instL: Rotate array) (wrap
             cy <- ncy
             cdir <- ncdir
 
-            let dirch =
-                match cdir with
-                | Dir.R -> '>'
-                | Dir.L -> '<'
-                | Dir.D -> 'v'
-                | Dir.U -> '^'
+            mapToPrint[cx, cy] <- DirChar.Item cdir
 
-            mapdraw[cx, cy] <- dirch
-
-        //printScreen2 false mapdraw
+        //printScreen false mapToPrint
         (cx, cy), cdir
 
     let move (pos: int * int, dir: Dir) (n: int) (rotate: Rotate) =
-        printm $"move from pos {pos} with dir {dir} with next steps" (n, rotate)
+        //printm $"move from pos {pos} with dir {dir} with next steps" (n, rotate)
         let next, cdir = movefrom pos n dir
-        print $"moved to {next}"
+        //print $"moved to {next}"
 
 
         let nextDir =
@@ -161,6 +152,7 @@ let solve (map: char array2d, H, W, instN: int array, instL: Rotate array) (wrap
         + 4 * (snd (finalPos) + 1)
         + dvalue
 
+    printScreen false mapToPrint
     print sln
     sln
 
@@ -198,7 +190,6 @@ let solve1 (lines: string []) =
         | Dir.U -> endX[cy], cy, dir
         | Dir.D -> startX[cy], cy, dir
 
-    print wrap1
     let sln = solve (map, H, W, instN, instL) wrap1
     sln
 
@@ -212,7 +203,7 @@ type next =
 
 type RealCoord = { X: int; Y: int }
 
-let solve2_ facesGrid rules (lines: string []) =
+let solve2ByRules facesGrid rules (lines: string []) =
     let (H, W), (instN, instL), map = read lines
 
     let gridW = Array2D.length2 facesGrid
@@ -242,10 +233,7 @@ let solve2_ facesGrid rules (lines: string []) =
 
         { X = cnextX; Y = cnextY }
 
-    let faceByPos x y =
-        let f = facesGrid[int (x / SZ), int (y / SZ)]
-        //printm $"face for {x},{y} is" f
-        f
+    let faceByPos x y = facesGrid[int (x / SZ), int (y / SZ)]
 
     let posByFace face = //todo - any other solution?
         let (x, y, v) =
@@ -261,7 +249,6 @@ let solve2_ facesGrid rules (lines: string []) =
         nextFace, nextDir, compNext xMove yMove c
 
     let faces = Array2D.init H W faceByPos
-    //print faces
 
     let nextface (cx, cy, dir) =
         let face = faceByPos cx cy
@@ -275,12 +262,11 @@ let solve2_ facesGrid rules (lines: string []) =
 
         let origpos = posByFace nface
         let nx, ny = x % SZ + fst (origpos) * SZ, y % SZ + snd (origpos) * SZ
-        printm $"recalc for pos {cx},{cy}: nface={nface} origpos={origpos} x={x} y={y}; also newdir={ndir}" (nx, ny)
+        //printm $"recalc for pos {cx},{cy}: nface={nface} origpos={origpos} x={x} y={y}; also newdir={ndir}" (nx, ny)
         (nx, ny, ndir)
 
     let wrap (cx, cy, dir) = nextface (cx, cy, dir)
 
-    //print wrap
     let sln = solve (map, H, W, instN, instL) wrap
     sln
 
@@ -327,7 +313,7 @@ let solve2 (quiz: QuizType) =
 
             | _ -> failwith $"missed a case here...! dir={dir},face={face}"
 
-        solve2_ facesGrid rules
+        solve2ByRules facesGrid rules
     | Input ->
         let facesGrid =
             array2D [ [ 0; 1; 2 ]
@@ -369,4 +355,4 @@ let solve2 (quiz: QuizType) =
 
             | _ -> failwith $"missed a case here...! dir={dir},face={face}"
 
-        solve2_ facesGrid rules
+        solve2ByRules facesGrid rules
